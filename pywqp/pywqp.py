@@ -1,0 +1,61 @@
+import sys
+
+
+
+usage = '''All parameters are named. The valid parameters are:
+
+    paramfile (a local filesystem reference to a parameter list);
+
+    wqp-search-type (a REQUIRED parameter with the following valid values:
+        - station
+        - result
+        - simple_station
+        - biological_result)
+
+    providers (an OPTIONAL (default = all) space-delimited list of providers 
+        to which the query will be restricted);
+
+    GEOSPATIAL CONSTRAINTS:
+        [NOTE: all latitude and longitude values are expressed decimally
+            as per WGS84.]
+    bBox (a bounding box whose top and bottom are geographical parallels of 
+        latitude, and whose sides are meridians of longitude.)
+    lat, long, within (three separate arguments that together represent
+        a circle on the Earth's surface. 'lat' and 'long' define the circle's
+        center; 'within' is a radius expressed in decimal miles.
+
+    POLITICAL JURISDICTION:
+        [NOTE: countrycode, statecode, and countycode are interdependent
+            and are required to be consistent. All codes are based on the US
+            FIPS Publications.]
+    countrycode 
+    statecode
+    countycode
+
+    SITE CONSTRAINTS:
+    organization (ID of the administrative subunit responsible for maintenance
+        and sampling activities at the site)
+    siteType
+    siteid (the site identifier used by the owning organization, appended to
+        the organization's designation, with a single hyphen discriminator.)
+    huc (Hydrologic Unit Code as maintained by USGS)
+
+    SAMPLING CONSTRAINTS:
+    activityId (the project or program responsible for a specific sampling
+        effort)
+    startDateLo ("startDate" means the first date of a particular collection
+        effort, which is applied to all samples obtained by that effort.
+        In effect, it's a kind of nominal date for the entire effort, rather
+        than the date on which a particular measurement is actually obtained.)
+    startDateHi
+    sampleMedia
+    characteristicType
+    characteristicName
+    pCode (An NWIS-only classification scheme for sampling procedures. Non-NWIS
+        data sources will not provide any results to a query with a pCode
+        parameter.)
+    analyticalmethod (a classification of analytical protocols curated by NEMI
+        (see [http://www.nemi.gov] for more information.) The value of this
+        parameter is a published NEMI URI, _fully urlencoded_.)
+    
+'''
