@@ -1,12 +1,14 @@
 import sys
+import pywqp_client
+import pywqp_validator
 
 
-
-usage = '''All parameters are named. The valid parameters are:
+usage = '''
+    All parameters are named. The valid parameters are:
 
     paramfile (a local filesystem reference to a parameter list);
 
-    wqp-search-type (a REQUIRED parameter with the following valid values:
+    wqpResourceType (a REQUIRED parameter with the following valid values:
         - station
         - result
         - simple_station
@@ -20,7 +22,7 @@ usage = '''All parameters are named. The valid parameters are:
             as per WGS84.]
     bBox (a bounding box whose top and bottom are geographical parallels of 
         latitude, and whose sides are meridians of longitude.)
-    lat, long, within (three separate arguments that together represent
+    lat, lon, within (three separate arguments that together represent
         a circle on the Earth's surface. 'lat' and 'long' define the circle's
         center; 'within' is a radius expressed in decimal miles.
 
@@ -33,10 +35,10 @@ usage = '''All parameters are named. The valid parameters are:
     countycode
 
     SITE CONSTRAINTS:
-    organization (ID of the administrative subunit responsible for maintenance
+    organizationId (ID of the administrative subunit responsible for maintenance
         and sampling activities at the site)
     siteType
-    siteid (the site identifier used by the owning organization, appended to
+    siteId (the site identifier used by the owning organization, appended to
         the organization's designation, with a single hyphen discriminator.)
     huc (Hydrologic Unit Code as maintained by USGS)
 
@@ -54,8 +56,55 @@ usage = '''All parameters are named. The valid parameters are:
     pCode (An NWIS-only classification scheme for sampling procedures. Non-NWIS
         data sources will not provide any results to a query with a pCode
         parameter.)
-    analyticalmethod (a classification of analytical protocols curated by NEMI
+    analyticalMethod (a classification of analytical protocols curated by NEMI
         (see [http://www.nemi.gov] for more information.) The value of this
         parameter is a published NEMI URI, _fully urlencoded_.)
     
 '''
+
+
+client = pywqp_client.RESTClient()
+validator = pywqp_validator.WQPValidator()
+
+for label in ('station', 'result', 'simplestation', 'bio'):
+    print('label: ' + label + '; response type path: ' + client.resource_type(label))
+
+print(validator.param_names())
+
+print
+print('STATIC REQUEST')
+
+# Boone County, IA
+
+boone_county = {'countrycode': 'US', 'statecode': 'US:19', 'countycode': 'US:19:015'}
+base = {'mimeType': 'xml', 'zip': 'no'}
+print('boone_county:')
+print(boone_county)
+print('base:')
+print(base)
+
+allparams = boone_county
+print('allparams:')
+print(allparams)
+
+allparams.update(base)
+print('allparams after:')
+print(allparams)
+
+host_url = 'http://www.waterqualitydata.us'
+resource_label = 'station'
+
+full_path = host_url + client.resource_type(resource_label)
+print('FULL URL: ' + full_path)
+print('PARAMS:')
+print(allparams)
+
+print
+
+response = client.wqp_request('get', host_url, resource_label,  allparams)
+
+print('response received BACK HERE.')
+print(response.url)
+print(client.serialize_http_msg_head(response))
+
+client.stash_response(response, '../../demo', 'xml')
