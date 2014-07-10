@@ -14,7 +14,7 @@ usage = '''
         - simple_station
         - biological_result)
 
-    providers (an OPTIONAL (default = all) space-delimited list of providers 
+    providers (an OPTIONAL (default = all) tuple of providers 
         to which the query will be restricted);
 
     GEOSPATIAL CONSTRAINTS:
@@ -59,12 +59,32 @@ usage = '''
     analyticalMethod (a classification of analytical protocols curated by NEMI
         (see [http://www.nemi.gov] for more information.) The value of this
         parameter is a published NEMI URI, _fully urlencoded_.)
-    
 '''
+
+# paramfile is a listing of parameters, one per line, empty lines ignored.
+# each parameter is of the form <name>=<value> (no angle brackets in real life.)
+def paramfile_args(filename):
+    paramfile = open(filename, 'r')
+    paramexprs = paramfile.readlines()
+    paramfile.close()
+    retval = {}
+    for paramexpr in paramexprs:
+        
 
 
 client = pywqp_client.RESTClient()
 validator = pywqp_validator.WQPValidator()
+
+# process commandline arguments
+if sys.argv['paramfile']:
+    # do nothing so far
+    
+if sys.argv['wqpResourceType']:
+
+
+
+
+
 
 for label in ('station', 'result', 'simplestation', 'bio'):
     print('label: ' + label + '; response type path: ' + client.resource_type(label))

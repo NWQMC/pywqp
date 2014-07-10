@@ -24,7 +24,7 @@ class RESTClient():
         return ''
 
 
-    def wqp_request(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
+    def make_wqp_request(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
         '''
         "verb" must be "get" or "head". This client doesn't support any other 
         HTTP methods.
