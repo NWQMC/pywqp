@@ -80,6 +80,17 @@ class WQPValidator():
                 return paramtype
         return False
 
+    # accepts string <name>=<value>, returns single-entry dict if valid,
+    # False if not valid
+    def param_from_expr(self, paramexpr):
+        parts = paramexpr.split('=')
+        if len(parts) == 2:
+            # might be valid
+
+    def param_from_list(self, name_val):
+        paramtype = self.known_param(name_val[0])
+
+
     def valid_bbox(self, bbox_value):
         return False
 
