@@ -1,4 +1,5 @@
 import utils
+import os.path
 
 util = utils.Utils()
 
@@ -9,7 +10,8 @@ import pywqp_client as cli
 
 
 rest_client = cli.RESTClient()
-stash_path = "/Users/jameskreft/desktop/scratch/bare.csv"
+stash_path = "../scratch/bare.csv"
+stash_path = os.path.abspath(stash_path)
 
 # statecode=US%3A55&countycode=US%3A55%3A015&characteristicName=pH
 
