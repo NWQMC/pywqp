@@ -84,7 +84,7 @@ class WQPValidator():
     # False if not valid
     def param_from_expr(self, paramexpr):
         parts = paramexpr.split('=')
-        if len(parts) == 2:
+        #if len(parts) == 2:
             # might be valid
 
     def param_from_list(self, name_val):

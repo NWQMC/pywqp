@@ -63,33 +63,23 @@ usage = '''
 
 # paramfile is a listing of parameters, one per line, empty lines ignored.
 # each parameter is of the form <name>=<value> (no angle brackets in real life.)
+client = pywqp_client.RESTClient()
+validator = pywqp_validator.WQPValidator()
+
+
 def paramfile_args(filename):
     paramfile = open(filename, 'r')
     paramexprs = paramfile.readlines()
     paramfile.close()
     retval = {}
     for paramexpr in paramexprs:
-        
-
-
-client = pywqp_client.RESTClient()
-validator = pywqp_validator.WQPValidator()
-
-# process commandline arguments
-if sys.argv['paramfile']:
-    # do nothing so far
-    
-if sys.argv['wqpResourceType']:
-
-
-
-
-
-
-for label in ('station', 'result', 'simplestation', 'bio'):
-    print('label: ' + label + '; response type path: ' + client.resource_type(label))
-
-print(validator.param_names())
+        # process commandline arguments
+        #if sys.argv['paramfile']:
+            # do nothing so far
+        if sys.argv['wqpResourceType']:
+            for label in ('station', 'result', 'simplestation', 'bio'):
+                print('label: ' + label + '; response type path: ' + client.resource_type(label))
+        print(validator.param_names())
 
 print
 print('STATIC REQUEST')
@@ -121,10 +111,10 @@ print(allparams)
 
 print
 
-response = client.wqp_request('get', host_url, resource_label,  allparams)
+response = client.make_wqp_request('get', host_url, resource_label,  allparams)
 
 print('response received BACK HERE.')
 print(response.url)
-print(client.serialize_http_msg_head(response))
+print(client.serialize_http_response_head(response))
 
 client.stash_response(response, '../../demo', 'xml')

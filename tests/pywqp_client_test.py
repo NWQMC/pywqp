@@ -9,6 +9,7 @@ import pywqp_client as cli
 
 
 rest_client = cli.RESTClient()
+stash_path = "/Users/jameskreft/desktop/scratch/bare.csv"
 
 # statecode=US%3A55&countycode=US%3A55%3A015&characteristicName=pH
 
@@ -28,19 +29,19 @@ for header in response.headers:
 print
 # write the file to disk as regular csv
 print('writing bare CSV to disk as bare.csv...')
-rest_client.stash_response(response, '/Users/whb/dev/pywqp/scratch/bare.csv', as_hdf5=False, raw_http=False)
+rest_client.stash_response(response, stash_path, as_hdf5=False, raw_http=False)
 print('...done')
 print
 
 # write the file to disk as csv.http
 print('writing entire message to disk as bare.csv.http...')
-rest_client.stash_response(response, '/Users/whb/dev/pywqp/scratch/bare.csv', as_hdf5=False, raw_http=True)
+rest_client.stash_response(response, stash_path, as_hdf5=False, raw_http=True)
 print('...done')
 print
 
 # write the file to disk as a bare HDF5
 print('writing HDF5 to disk as bare.h5...')
-rest_client.stash_response(response, '/Users/whb/dev/pywqp/scratch/bare.csv', as_hdf5=True, raw_http=False)
+rest_client.stash_response(response,stash_path, as_hdf5=True, raw_http=False)
 print('...done')
 print
 

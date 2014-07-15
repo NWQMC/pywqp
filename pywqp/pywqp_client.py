@@ -123,7 +123,7 @@ class RESTClient():
             # TODO what about non-CSV content types?
 
             # Write the resulting dataframe to the hdf5 file
-            dataframe.to_hdf(filepathname, 'table', mode='w')
+            #dataframe.to_hdf(filepathname, 'table', mode='w')
         else:
             # NOT hdf5
             writefile = open(filepathname, 'w')
