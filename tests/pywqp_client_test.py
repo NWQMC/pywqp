@@ -44,6 +44,8 @@ rest_client.stash_response(response, '/Users/whb/dev/pywqp/scratch/bare.csv', as
 print('...done')
 print
 
+# read the HDF file back into a CSV
+
 
 print
 print('ok')
