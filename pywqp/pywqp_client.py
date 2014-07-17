@@ -59,55 +59,78 @@ class RESTClient():
 
         return response
 
+
     def serialize_http_response_head(self, response):
         retval = 'HTTP/1.1 ' + str(response.status_code) + ' ' + response.reason + '\n'
         for header in response.headers:
             retval += header + ':' + response.headers[header] + '\n'
         return retval
+
+
+    def get_content_type(self, response):
+	'''
+	Returns the Internet Content type (a.k.a. "mimeType") of the response
+	argument. 
+	If the response is empty or None, returns None.
+	If the response does contain data, but this function cannot determine
+	what the correct answer is, returns None. (For now.)
+	'''
+	if not response:
+	    return None
+	content_type = response.headers.get('content-type')
+	if not content_type:
+	    # TODO: determine if there's any good default value
+	    # TODO: any worthwhile analysis/guessing algorithms?
+	    content_type = None
+	return content_type
+
+
+    def response_as_pandas_dataframe(self, response):
+	'''
+	Converts the response's message body into a frame, which is returned. 
+	If the response is empty or None, returns None.
+	'''
+	if not response:
+	    return None
+
+	content_type = self.get_content_type(response)
+	if not content_type:
+	    return None
+
+	dataframe = None
+        if content_type == 'text/csv':
+            dataframe = pd.read_csv(StringIO.StringIO(response.content))
+	elif content_type == 'text/xml' or content_type == 'application_xml':
+	    # TODO this needs to be fixed, but it's complicated...
+	    raise(BaseException, 'XML conversion to dataframe is not yet implemented.')
+	return dataframe
+
     
-    def stash_response(self, response, filepathname, as_hdf5=True, raw_http=False):
+    def stash_response(self, response, filepathname, raw_http=False):
         '''
         This function saves the requests.response parameter as a file.
-        The "filepathname" argument must be an absolute system filepath.
-        "as_hdf5" is a boolean directive: 
-            If True, the filename extension will be ".h5", and the file
-                will be written to disk by pandas's serialization for HDF5.
-            If False, the native mime type of the response (as determined
-                by the http "mime-type" header) will determine the filename
-                extension, and the messagebody will be written directly to 
-                the file.
         "raw_http" is a boolean stating whether to write the full 
             HTTP response: start-line, headers, an empty line, and 
             message body, when the file is stashed (this feature is
             intended primarily for troubleshooting network/HTTP issues.)
             If True, ".http" will be appended to the filename
         '''
-
-        mimetype = response.headers['content-type']
-        if mimetype:
-            # extract the mime subtype ('xml', 'csv' etc)
-            mimetype = mimetype.split('/')[-1]
-            if ';' in mimetype:
-                mimetype = mimetype.split(';')[0]
-
+        content_type = self.get_content_type(response)
 
         fileformat = ''
-        if as_hdf5:
-            fileformat = 'h5'
-        elif mimetype:
-            fileformat = mimetype
+	if content_type:
+	    # extract subtype
+	    fileformat = content_type.split('/')[-1]
+	    #snip off trailing parameter(s)
+	    fileformat = fileformat.split(';')[0]
         else:
             #desperate default
             fileformat = 'txt'
-                        
-        # the filepathname must be a full filepath
-        if filepathname.startswith('/'):
-            filepathname = os.path.abspath(filepathname)
-            if not os.path.exists(os.path.split(filepathname)[0]):
-                os.makedirs(os.path.split(filepathname)[0])
-        else:
-            raise(BaseException('The filepathname parameter "' 
-                    + filepathname + '" is not an absolute path.'))
+        
+	# coerce to absolute path
+        filepathname = os.path.abspath(filepathname)
+        if not os.path.exists(os.path.split(filepathname)[0]):
+            os.makedirs(os.path.split(filepathname)[0])
 
         if not filepathname.endswith(fileformat):
             filepathname += '.' + fileformat
@@ -115,60 +138,40 @@ class RESTClient():
         if raw_http:
             filepathname += '.http'
 
-        if as_hdf5:
-            # we need a dataframe
-            dataframe = ''
-            if mimetype == 'csv':
-                dataframe = pd.read_csv(StringIO.StringIO(response.content))
-            # TODO what about non-CSV content types?
+	writefile = open(filepathname, 'w')
 
-            # Write the resulting dataframe to the hdf5 file
-            #dataframe.to_hdf(filepathname, 'table', mode='w')
-        else:
-            # NOT hdf5
-            writefile = open(filepathname, 'w')
+	if raw_http:
+	    # replicate HTTP message head
+	    writefile.write(self.serialize_http_response_head(response))
+	    writefile.write('\n')
 
-            if raw_http:
-                # replicate HTTP message
-                writefile.write(self.serialize_http_response_head(response))
-                writefile.write('\n')
-
-            # write message body content, if any
-            if 'transfer-encoding' in response.headers and response.headers['transfer-encoding'] == 'chunked':
-                for chunk in response.iter_content():
-                    writefile.write(chunk)
-            elif 'content-length' in response.headers and response.headers['content-length'] > 0:
-                writefile.write(response.content)
-            else:
-                # it's possible the headers are screwed up and we still want content
-                content = response.content
-                if content:
-                    writefile.write(content)
-                    
-            writefile.close()
+	# write message body content, if any
+	if 'transfer-encoding' in response.headers and response.headers['transfer-encoding'] == 'chunked':
+	    for chunk in response.iter_content():
+		writefile.write(chunk)
+	elif 'content-length' in response.headers and response.headers['content-length'] > 0:
+	    writefile.write(response.content)
+	else:
+	    # it's possible the headers are screwed up and we still want the content
+	    content = response.content
+	    if content:
+		writefile.write(content)
+		
+	writefile.close()
 
     def read_stashed_data(self, filepath):
         '''
-        Returns a read-only copy of the stashed data. If it's an HDF5
-        dataframe, the returned value is a pandas dataframe. Otherwise,
-        it's just an ordinary file handle in read mode.
+        Returns a read-only copy of the stashed data as an ordinary file 
+	handle in read mode.
         '''
         # the filepathname must be a full filepath
-        if filepathname.startswith('/'):
-            filepathname = os.path.abspath(filepathname)
-        else:
-            raise(BaseException('The filepathname parameter "' 
-                    + filepathname + '" is not an absolute path.'))
+        filepathname = os.path.abspath(filepathname)
+        
         if not os.path.isfile(filepath):
             raise(BaseException('The filepathname parameter "'
                     + filepathname + '" does not identify an actual file.'))
 
-            if filepathname.endswith('h5'):
-                # HDF5 dataframe
-                dataframe = pd.read_hdf(filepathname, 'table', mode='r')
-                return dataframe
-            else:
-                file = open(filepathname, 'r')
-                return file
+        file = open(filepathname, 'r')
+        return file
 
 
