@@ -165,7 +165,7 @@ class RESTClient():
 	handle in read mode.
         '''
         # the filepathname must be a full filepath
-        filepathname = os.path.abspath(filepathname)
+        filepathname = os.path.abspath(filepath)
         
         if not os.path.isfile(filepath):
             raise(BaseException('The filepathname parameter "'
