@@ -1,6 +1,6 @@
 *.DS_Store
 *~
 *.swp
-*.py
+*.pyc
 
 /tests/features/scratch/
