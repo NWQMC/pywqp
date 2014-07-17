@@ -2,3 +2,6 @@
 *~
 *.swp
 *.pyc
+
+#virtualenv
+env
