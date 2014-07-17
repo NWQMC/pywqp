@@ -1,0 +1,8 @@
+Notes on conventions for work defined in this repository
+
+STANDARD IMPORTS/ALIASES:
+import numpy as np
+
+# for performace testing
+from timeit import timeit
+

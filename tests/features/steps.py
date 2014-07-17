@@ -123,17 +123,46 @@ def and_total_resource_count_should_equal_the_sum_of_all_contributing_counts(ste
 
 @step(u'And the messagebody should contain as many data rows as the total-site-count reported in the header')
 def messagebody_to_header_consistency_check(step):
-    assert False, 'This step must be implemented'
-@step(u'Given that I have downloaded WQP data in CSV form')
-def given_that_i_have_downloaded_wqp_data_in_csv_form(step):
-    assert False, 'This step must be implemented'
-@step(u'When I stash that data to disk using pywqp')
-def when_i_stash_that_data_to_disk_using_pywqp(step):
-    assert False, 'This step must be implemented'
-@step(u'Then I should see the file on disk with the same byte size as the downloaded file')
-def then_i_should_see_the_file_on_disk_with_the_same_byte_size_as_the_downloaded_file(step):
-    assert False, 'This step must be implemented'
+    headertotal = int(world.response.headers['total-site-count'])
+    # csv
+    bodytotal = world.response.text.count('\n')
+    assert headertotal == bodytotal
 
+@step(u'Given that I have downloaded WQP data in "([^"]*)" form')
+def i_have_downloaded_csv(step, content_type):
+    assert world.response.headers['content-type'] == content_type
+
+@step(u'Given that I have downloaded WQP data')
+@step(u'And I have retained a copy in memory')
+def i_have_downloaded(step):
+    assert hasattr(world.response, 'text')
+    assert len(world.response.text) > 0
+
+@step(u'When I stash that data to disk using pywqp')
+def stash_data_to_disk(step):
+    world.stashfile_name = 'scratch/bare.csv'
+    stashfile = open(world.stashfile_name, 'w')
+    stashfile.write(world.response.text)
+
+@step(u'Then I should see the file on disk with the same byte size as the downloaded file')
+def crosscheck_stashfile_size(step):
+    stashlen = os.path.getsize(world.stashfile_name)
+    memlen = len(world.response.text)
+    assert(stashlen == memlen)
+
+@step(u'And I have stashed that data on disk using pywqp')
+def data_is_stashed(step):
+    assert os.path.exists(world.stashfile_name)
+
+@step(u'When I read the data from disk')
+def when_i_read_the_data_from_disk(step):
+    stashfile = open(world.stashfile_name, 'r')
+
+@step(u'Then the two CSV files should contain the same number of rows')
+def same_number_of_rows(step):
+    stashfile = open(world.stashfile_name, 'r')
+    data = stashfile.read()
+    assert data.count('\n') == world.response.text.count('\n')
 
 
 # ----------------- supporting functions -------------

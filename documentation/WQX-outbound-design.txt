@@ -1,8 +1,0 @@
-WQX -> HDF5 translation
-
-This is a generic HDF5 design document for WQX-outbound content.
-
-GROUPS:
-
-WQX (top-level group for any single WQX-outbound HDF5 data structure)
-
