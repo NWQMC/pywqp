@@ -6,8 +6,8 @@ def say_hello():
     print "Hello there!"
     print "Lettuce will start to run tests right now..."
 
-@before.each_step
-def tell_me_world_response(step):
+#@before.each_step
+#def tell_me_world_response(step):
     #print('--------------------------------------------------')
     #print("running step %r, defined at %s" % (
         #step.sentence,
