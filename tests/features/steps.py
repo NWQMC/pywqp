@@ -7,38 +7,11 @@ import requests
 #nwis-site-count: 107
 #access-control-expose-headers: Total-Result-Count, Total-Site-Count
 #content-length: 0
-## NOT PRESENT server: Apache-Coyote/1.1
+#server: Apache-Coyote/1.1
 #total-site-count: 374
 #date: Wed, 16 Jul 2014 18:59:58 GMT
 #access-control-allow-origin: *
 #storet-site-count: 262
-
-# This is ONLY for head. It checks with premade literals in case the problem is in
-# the actual HTTP header content, or in the datatype of the regex extracted parameter.
-# Because this blows goats.
-@step(u'And I should see all the HEAD things')
-def all_the_things(step):
-    copy = []
-    for headername in world.response.headers.keys():
-        copy.append(str(headername))
-    assert len(copy) > 0
-    assert len(copy) > 1
-    assert len(copy) > 2
-    assert len(copy) > 3
-    #assert len(copy) > 4
-    #assert len(copy) > 5
-    #assert len(copy) > 6
-    #assert len(copy) > 7
-    #assert len(copy) > 8
-    assert 'date' in copy
-    #assert 'access-control-expose-headers' in copy
-    #assert 'access-control-allow-origin' in copy
-    assert 'content-length' in copy
-    assert 'wqp-job-id' in copy
-    assert 'total-site-count' in copy
-    assert 'nwis-site-count' in copy
-    assert 'storet-site-count' in copy
-    assert 'stewards-site-count' in copy
 
 
 @step(u'Given WQPServer = "([^"]*)"')
