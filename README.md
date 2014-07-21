@@ -31,7 +31,6 @@ You can run pywqp's tests whenever you like. You **should** run them whenever yo
 If you don't take direct advantage of the virtualenv setup information (`dev_setup.sh` and `requirements.txt`), you can still use them as a guide to ensuring that you know which needed versions and libraries to install. The only dependency for running the tests should be `lettuce` itself.
 
 Lettuce is extremely simple to run. From the pywqp root:
-
 <pre>
 <tt>cd tests
 lettuce</tt>
