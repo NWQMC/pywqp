@@ -14,12 +14,11 @@ The project consists of the following components:
 <br/>
 #### Using <tt>pywqp-client.py</tt> in your Python program
 The core resource of `pywqp_client` is the class `RESTClient`. The pattern of usage is fairly simple:
-<tt>
 <pre>
-import pywpq_client
-client_instance = pywqp_client.RESTClient()
+<tt>import pywpq_client
+client_instance = pywqp_client.RESTClient()</tt>
 </pre>
-</tt>
+
 
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`.
 
@@ -32,11 +31,11 @@ You can run pywqp's tests whenever you like. You **should** run them whenever yo
 If you don't take direct advantage of the virtualenv setup information (`dev_setup.sh` and `requirements.txt`), you can still use them as a guide to ensuring that you know which needed versions and libraries to install. The only dependency for running the tests should be `lettuce` itself.
 
 Lettuce is extremely simple to run. From the pywqp root:
-<tt>
+
 <pre>
-cd tests
-lettuce
+<tt>cd tests
+lettuce</tt>
 </pre>
-</tt>
+
 
 Its output is pretty straightforward to read, too.
