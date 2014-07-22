@@ -19,6 +19,7 @@ The core resource of `pywqp_client` is the class `RESTClient`. The pattern of us
 client_instance = pywqp_client.RESTClient()</tt>
 </pre>
 
+**Note** that you will need to ensure that the `pywqp` folder is in your system path, or else you will not be able to `import pywqp_client`.
 
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`.
 
