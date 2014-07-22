@@ -1,5 +1,5 @@
 from lettuce import *
-import sys, os, inspect
+import sys, os, os.path, inspect
 import requests
 
 #wqp-job-id: 2545
@@ -114,27 +114,34 @@ def i_have_downloaded(step):
 
 @step(u'When I stash that data to disk using pywqp')
 def stash_data_to_disk(step):
-    world.stashfile_name = 'scratch/bare.csv'
-    stashfile = open(world.stashfile_name, 'w')
-    stashfile.write(world.response.text)
+    world.stashfile_pathname = os.path.abspath('scratch/bare.csv')
+    #remove any preexisting/leftover stash instance with this file pathname
+    if os.path.exists(world.stashfile_pathname):
+        os.remove(world.stashfile_pathname)
+
+    import pywqp_client
+    client_instance = pywqp_client.RESTClient()
+    client_instance.stash_response(world.response, world.stashfile_pathname)
+    assert os.path.exists(world.stashfile_pathname)
 
 @step(u'Then I should see the file on disk with the same byte size as the downloaded file')
 def crosscheck_stashfile_size(step):
-    stashlen = os.path.getsize(world.stashfile_name)
+    stashlen = os.path.getsize(world.stashfile_pathname)
     memlen = len(world.response.text)
     assert(stashlen == memlen)
 
 @step(u'And I have stashed that data on disk using pywqp')
 def data_is_stashed(step):
-    assert os.path.exists(world.stashfile_name)
+    assert os.path.exists(world.stashfile_pathname)
 
 @step(u'When I read the data from disk')
 def when_i_read_the_data_from_disk(step):
-    stashfile = open(world.stashfile_name, 'r')
+    #stashfile = 
+    stashfile = open(world.stashfile_pathname, 'r')
 
 @step(u'Then the two CSV files should contain the same number of rows')
 def same_number_of_rows(step):
-    stashfile = open(world.stashfile_name, 'r')
+    stashfile = open(world.stashfile_pathname, 'r')
     data = stashfile.read()
     assert data.count('\n') == world.response.text.count('\n')
 

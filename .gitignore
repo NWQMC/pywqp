@@ -3,6 +3,6 @@
 *.swp
 *.pyc
 /tests/features/scratch/
-/tests.scratch/
+/tests/scratch/*
 #virtualenv
 env
