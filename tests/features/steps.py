@@ -68,7 +68,7 @@ def make_call(step, verb):
         
 
     # make_wqp_request(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
-    world.response = client_instance.make_wqp_request(verb, world.wqpserver, world.resourcetype, params, contenttype)
+    world.response = client_instance.request_wqp_data(verb, world.wqpserver, world.resourcetype, params, contenttype)
  
 @step(u'Then I should receive a "([^"]*)" status')
 def status_code(step, code):
@@ -95,6 +95,7 @@ def and_total_resource_count_should_equal_the_sum_of_all_contributing_counts(ste
     assert contrib == total
 
 @step(u'And the messagebody should contain as many data rows as the total-site-count reported in the header')
+@step(u'the messagebody data row count should match the total-site-count header')
 def messagebody_to_header_consistency_check(step):
     headertotal = int(world.response.headers['total-site-count'])
     # csv

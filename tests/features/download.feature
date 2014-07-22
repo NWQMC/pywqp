@@ -40,4 +40,4 @@ Feature: Query Water Quality Portal
 	When I query WQP with a "GET" request
 	Then I should receive a "200" status
 	And I should see a total-"site-count" greater than 0
-	And the messagebody should contain as many data rows as the total-site-count reported in the header
+	And the messagebody data row count should match the total-site-count header

@@ -13,6 +13,17 @@ class RESTClient():
         'bio': '/biologicalresult/search'
     }
 
+    '''
+    The WQP interface includes a parameter called 'mimeType'. This dictionary
+    ontains the subset of WQP mimeTypes supported in pywqp.
+    Keys are the official [internet media type](http://en.wikipedia.org/wiki/Internet_media_type).
+    Values are the corresponding WQP mimeType parameters.
+    '''
+    supported_mime_types = {
+        'text/xml': 'xml', 
+        'text/csv': 'csv'
+    }
+
     def resource_type(self, label):
         """
         Returns the URL path fragment that will be appended to the application
@@ -24,8 +35,9 @@ class RESTClient():
             return self.resource_types[label]
         return ''
 
-    def make_wqp_request(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
+    def request_wqp_data(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
         """
+        This function sends a query to the WQP server, and returns a requests.response object.
         "verb" must be "get" or "head". This client doesn't support any other 
         HTTP methods.
         "host_url" needs to include context as necessary (including port number). 
@@ -41,12 +53,10 @@ class RESTClient():
 
         request_url = host_url + self.resource_type(resource_label)
 
-        mime_types = {'text/xml': 'xml', 'text/csv': 'csv'}
-
         # baked-in parameters
         # TODO should transfer as zipped (for efficiency on the wire) 
         # and then unzip in client. Keeping it simple for now.
-        translated_mime_type = mime_types[mime_type]
+        translated_mime_type = self.supported_mime_types[mime_type]
         if not translated_mime_type:
             translated_mime_type = 'csv'
         baked = {'mimeType': translated_mime_type, 'zip': 'no'}
