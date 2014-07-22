@@ -58,6 +58,7 @@ class RESTClient():
         # and then unzip in client. Keeping it simple for now.
         translated_mime_type = self.supported_mime_types[mime_type]
         if not translated_mime_type:
+            # insert a reasonable default
             translated_mime_type = 'csv'
         baked = {'mimeType': translated_mime_type, 'zip': 'no'}
         parameters.update(baked)
@@ -167,7 +168,7 @@ class RESTClient():
     def read_stashed_data(self, filepath):
         """
         Returns a read-only copy of the stashed data as an ordinary file 
-	handle in read mode.
+	object in read mode.
         """
         # the filepathname must be a full filepath
         filepathname = os.path.abspath(filepath)

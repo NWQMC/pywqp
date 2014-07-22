@@ -146,6 +146,46 @@ def same_number_of_rows(step):
     assert data.count('\n') == world.response.text.count('\n')
 
 
+
+@step(u'When I stash the entire message to disk using pywqp')
+def stash_message_to_disk(step):
+    world.stashfile_pathname = os.path.abspath('scratch/bare.csv')
+    #remove any preexisting/leftover stash instance with this EXPECTED file pathname
+    expected_stashfile_pathname = world.stashfile_pathname + '.http'
+    if os.path.exists(expected_stashfile_pathname):
+        os.remove(expected_stashfile_pathname)
+
+    import pywqp_client
+    client_instance = pywqp_client.RESTClient()
+    client_instance.stash_response(world.response, world.stashfile_pathname, raw_http=True)
+    # did the method call do the expected thing?
+    assert os.path.exists(expected_stashfile_pathname)
+
+@step(u'And I have stashed the message on disk using pywqp')
+@step(u'Then I should see the filepath on disk with appended http suffix')
+def verify_modified_pathname(step):
+    assert os.path.exists(world.stashfile_pathname + '.http')
+
+@step(u'Then the status line should be present')
+def then_the_status_line_should_be_present(step):
+    expected_stashfile_pathname = world.stashfile_pathname + '.http'
+    stashfile = open(expected_stashfile_pathname, 'r')
+    world.lines = stashfile.readlines()
+    assert str(world.response.status_code) in world.lines[0]
+    
+@step(u'And the headers should be present')
+def and_the_headers_should_be_present(step):
+    for headerline in  world.lines[1: len(world.response.headers)]:
+        written_name = headerline[:headerline.find(':')]
+        assert written_name in world.response.headers.keys()
+
+
+@step(u'And there should be a blank line before the messagebody')
+def verify_header_terminator(step):
+    assert world.lines[len(world.response.headers) + 1] == '\n'
+
+
+
 # ----------------- supporting functions -------------
 
 def setup_target_path():
