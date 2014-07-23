@@ -1,4 +1,5 @@
 import requests
+import urllib
 import sys
 import os.path
 import pandas as pd
@@ -24,6 +25,22 @@ class RESTClient():
         'text/csv': 'csv'
     }
 
+    def __regularize_params__(self, parameters, mime_type):
+        '''
+        Private method for imposing temporary restrictions on WQP parameter values
+        '''
+        # baked-in parameters
+        # TODO should transfer as zipped (for efficiency on the wire) 
+        # and then unzip in client. Keeping it simple for now.
+        translated_mime_type = self.supported_mime_types[mime_type]
+        if not translated_mime_type:
+            # insert a reasonable default
+            translated_mime_type = 'csv'
+        baked = {'mimeType': translated_mime_type, 'zip': 'no'}
+        parameters.update(baked)
+        return parameters
+
+
     def resource_type(self, label):
         """
         Returns the URL path fragment that will be appended to the application
@@ -34,6 +51,30 @@ class RESTClient():
         if label in self.resource_types:
             return self.resource_types[label]
         return ''
+
+    def create_restlike_url(self, host_url, resource_label, parameters, mime_type='text/csv'):
+        '''
+        This convenience method provides a WQP query URL. It accepts the same 
+        URL-specific parameters as request_wqp_data, and if run from a different 
+        context (e.g. curl or a browser) should return the same HTTP response 
+        as request_wqp_data.
+
+        The method is provided primarily as an aid in coding or troubleshooting,  
+        and as a sanity check to verify the correctness of URL-specific the 
+        argument list. (It's often helpful to have a REST URL to exercise the
+        network and server when you can't get things working right.)
+
+        Note that this provides the URL with its parameters already urlencoded.
+        curl likes this just fine, but it's possible that exercising this in a 
+        browser might give unexpected results.
+        '''
+        request_url = host_url + self.resource_type(resource_label)
+        parameters = self.__regularize_params__(parameters, mime_type)
+       
+        #write parameters as querystring
+        querystring = urllib.urlencode(parameters)
+        return request_url + '?' + querystring
+
 
     def request_wqp_data(self, verb, host_url, resource_label, parameters, mime_type='text/csv'):
         """

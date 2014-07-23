@@ -23,6 +23,42 @@ client_instance = pywqp_client.RESTClient()</tt>
 
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`.
 
+##### Downloading WQP Data: <tt>request_wqp_data</tt>
+
+Example: downloading pH data for Boone County, Iowa, US.
+<pre>
+<tt>verb = 'get'
+host_url = 'http://waterqualitydata.us'
+resource_label = 'station'
+params = {'countrycode': 'US', 'statecode': 'US:19', 'countycode': 'US:19:015', 'parameterName': 'pH'}
+result = client_instance.request_wqp_data(self, verb, host_url, resource_label, parameters, mime_type='text/csv')</tt>
+</pre>
+
+`request_wqp_data` returns a `requests.response` object. `pywqp_client` lets you do two things with that `response`:
+
+ - Convert the dataset to an in-memory pandas dataframe
+
+ - Stash the dataset on your local filesystem
+
+##### Converting WQP Data to a <tt>pandas</tt> dataframe with <tt>response_as_pandas_dataframe</tt>
+
+
+Example:
+<pre>
+<tt>dataframe = client__instance.response_as_pandas_dataframe(response)</tt>
+</pre>
+
+
+##### Stashing WQP Data to your local machine: <tt>stash_response</tt>
+
+
+Example:
+<pre>
+<tt>filepathname = '/home/whb/examples/wqp_example.csv'
+client_instance.stash_response(response, filepathname)</tt>
+</pre>
+
+
 <br/>
 #### Running the pywqp tests
 The project also contains a BDD test suite written in [lettuce](http://lettuce.it/). This is located in the `tests` folder. Shocking, I know.
