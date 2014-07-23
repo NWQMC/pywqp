@@ -28,8 +28,22 @@ Feature: Query Water Quality Portal
 	Then I should receive a "200" status
 	And I should see a total-"result-count" greater than 0
 	And total-"result-count" should equal the sum of all contributing counts
+
+
+    Scenario: Calumet County WI sites ph GET WQX XML data
+	Given WQPServer = "http://waterqualitydata.us"
+	And countrycode = "US"
+	And statecode = "US:55"
+	And countycode = "US:55:015"
+	And characteristicName = "pH"
+	And I want to search for "station" data
+	And I want it as "text/xml"
+	When I query WQP with a "GET" request
+	Then I should receive a "200" status
+	And I should see a total-"site-count" greater than 0
+	And the XML messagebody site count should match the total-site-count header
 	
-    Scenario: Calumet County WI sites ph GET
+    Scenario: Calumet County WI sites ph GET CSV data
 	Given WQPServer = "http://waterqualitydata.us"
 	And countrycode = "US"
 	And statecode = "US:55"
