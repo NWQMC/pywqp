@@ -52,7 +52,7 @@ class RESTClient():
             return self.resource_types[label]
         return ''
 
-    def create_restlike_url(self, host_url, resource_label, parameters, mime_type='text/csv'):
+    def create_rest_url(self, host_url, resource_label, parameters, mime_type='text/csv'):
         '''
         This convenience method provides a WQP query URL. It accepts the same 
         URL-specific parameters as request_wqp_data, and if run from a different 
