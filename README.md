@@ -30,21 +30,25 @@ This function makes a call to the Water Quality Portal server specified in the `
 
  - `verb`: a literal String representing the HTTP method of the Request. This method accepts only `'get'` or `'head'`: WQP currently doesn't support any other HTTP methods.
 
- - `resource_label`: an identifier for the kind of data being requested. The defined labels are the keys of the `RESTClient.resource_types` Dictionary. At time of writing, there are 4 of them:
+ - `resource_label`: an identifier for the kind of data being requested. The defined labels are the keys of the `RESTClient.resource_types` Dictionary. At time of writing, these are supported:
 
   - `'station'`: Station, or "Site", data refers to locations at which sampling is deemed to have occurred.
 
   - `'result'`: Result data refers to actual measurements. Will always include Station, date/time of observation, and metadata about the observation event.
 
-  - `'bio'`: Biological Result data. Treated as a separate category due to information design differences in the sample information.
-
   - `'simplestation'`: a very small subset of Station information, used mostly for interaction with geospatial systems.
 
 
- - `params` is a Dictionary containing [WQP REST parameters](http://www.waterqualitydata.us/webservices_documentation.jsp#WQPWebServicesGuide-RestParamDefs)
+ - `params` is a Dictionary containing [WQP REST parameters](http://www.waterqualitydata.us/webservices_documentation.jsp#WQPWebServicesGuide-RestParamDefs). 
+
+ - There is one standard WQP parameter which is not recognized in `params`: `mimeType`. This one is given its own Python parameter, `mime-type`, because currently pywqp supports only CSV and XML download formats. There are only two accepted values for this parameter:
+
+  - `'text/xml'`
+
+  - `'text/csv'` (which is the default value if this parameter is omitted.)
 
 <br/>
-###### Example: downloading data for Stations in Boone County, Iowa, US that have made pH observations.
+###### Example: downloading CSV data for Stations in Boone County, Iowa, US that have made pH observations.
 <pre>
 <tt>verb = 'get'
 host_url = 'http://waterqualitydata.us'
