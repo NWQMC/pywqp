@@ -111,7 +111,7 @@ client_instance.stash_response(response, filepathname)</tt>
 </pre>
 
 <br/>
-###### Troublesooting help: saving an entire HTTP message
+###### Troubleshooting help: saving an entire HTTP message
 As a convenience, pywqp also allows the storage of a complete HTTP response message, including status line and headers. This is done by setting the optional boolean parameter `raw_http=True`.
 <pre>
 <tt>filepathname = '/home/whb/examples/wqp_example.csv'
