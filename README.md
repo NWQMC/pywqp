@@ -12,7 +12,16 @@ The project consists of the following components:
 -  A parameter validation module, `pywqp_validator.py`
 
 <br/>
-#### Using <tt>pywqp-client.py</tt> in your Python program
+### Quick answers
+[How Do I download WQP data from my Python program?](#downloading-wqp-data-request_wqp_data)
+
+[How do I convert my download to a pandas dataframe?](#converting-wqp-response-data-to-a-pandas-dataframe-with-response_as_pandas_dataframe)
+
+[How do I stash my download to the local filesysstem?](#stashing-wqp-response-data-to-your-local-machine-stash_response)
+
+
+<br/>
+### Using <tt>pywqp-client.py</tt> in your Python program
 The core resource of `pywqp_client` is the class `RESTClient`. The pattern of usage is fairly simple:
 <pre>
 <tt>import pywpq_client
@@ -24,7 +33,7 @@ client_instance = pywqp_client.RESTClient()</tt>
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`. Examples of the important ones are shown below. In all cases, the example name "client_instance" is reused for simplicity, but that name has no particular significance. Name your objects as you wish.
 
 <br/>
-##### Downloading WQP Data: <tt>request_wqp_data</tt>
+#### Downloading WQP Data with <tt>request_wqp_data</tt>
 
 This function makes a call to the Water Quality Portal server specified in the `host_url` argument. The other arguments are as follows:
 
@@ -41,14 +50,14 @@ This function makes a call to the Water Quality Portal server specified in the `
 
  - `params` is a Dictionary containing [WQP REST parameters](http://www.waterqualitydata.us/webservices_documentation.jsp#WQPWebServicesGuide-RestParamDefs). 
 
- - There is one standard WQP parameter which is not recognized in `params`: `mimeType`. This one is given its own Python parameter, `mime-type`, because currently pywqp supports only CSV and XML download formats. There are only two accepted values for this parameter:
+ - There is one standard WQP parameter which is **not** recognized in `params`: `mimeType`. This one is given its own Python parameter, `mime-type`, because currently pywqp supports only CSV and XML download formats. There are only two accepted values for this parameter:
 
   - `'text/xml'`
 
   - `'text/csv'` (which is the default value if this parameter is omitted.)
 
 <br/>
-###### Example: downloading CSV data for Stations in Boone County, Iowa, US that have made pH observations.
+##### Example: downloading CSV data for Stations in Boone County, Iowa, US that have made pH observations.
 <pre>
 <tt>verb = 'get'
 host_url = 'http://waterqualitydata.us'
@@ -58,8 +67,8 @@ result = client_instance.request_wqp_data(verb, host_url, resource_label, parame
 </pre>
 
 <br/>
-###### Troublesooting help: getting an equivalent REST query URL
-When working with a module like pywqp, it's often very helpful to be able to produce a query that duplicates the one being issued by a module.  The duplicate query can be run independently though a utility such as curl (or a browser, as long as the browser handles outbound query parameter urlencoding correctly.)
+##### Troublesooting help: getting an equivalent REST query URL
+When working with a module like pywqp, it's often very helpful to be able to produce a query that duplicates the one being issued by the module.  The duplicate query can be run independently though a utility such as curl (or a browser, as long as the browser handles outbound query parameter urlencoding correctly.)
 
 pywqp provides this via `create_rest_url`, a function that takes the same `host_url`, `resource_label`, `params`, and `mime_type` arguments that are made to a call to `request_wqp_data`. Instead of making a call to WQP and returning a `requests.response` object, `create_rest_url` returns a paste-ready URL that can be set from a different client.
 
@@ -89,29 +98,29 @@ will print
 The next two examples show how to do those things.
 
 <br/>
-##### Converting WQP <tt>response</tt> Data to a <tt>pandas</tt> dataframe with <tt>response_as_pandas_dataframe</tt>
+#### Converting WQP <tt>response</tt> Data to a <tt>pandas</tt> dataframe with <tt>response_as_pandas_dataframe</tt>
 
 <br/>
-###### Example:
+##### Example:
 <pre>
 <tt>dataframe = client_instance.response_as_pandas_dataframe(response)</tt>
 </pre>
 
 
 <br/>
-##### Stashing WQP <tt>response</tt> Data to your local machine: <tt>stash_response</tt>
+#### Stashing WQP <tt>response</tt> Data to your local machine with <tt>stash_response</tt>
 
 Note that the `filepathname` argument can be either relative or absolute. If it's relative, the `stash_response` method will coerce it to an absolute based on the current directory. However, sometimes during Python execution the "current directory" is not obvious. Absolute `filepathnme`s are recommended. 
 
 <br/>
-###### Example:
+##### Example:
 <pre>
 <tt>filepathname = '/home/whb/examples/wqp_example.csv'
 client_instance.stash_response(response, filepathname)</tt>
 </pre>
 
 <br/>
-###### Troubleshooting help: saving an entire HTTP message
+##### Troubleshooting help: saving an entire HTTP message
 As a convenience, pywqp also allows the storage of a complete HTTP response message, including status line and headers. This is done by setting the optional boolean parameter `raw_http=True`.
 <pre>
 <tt>filepathname = '/home/whb/examples/wqp_example.csv'
@@ -136,12 +145,12 @@ Content-Type: text/csv
 </pre>
 
 <br/>
-###### No direct HDF5 support
+#### No direct HDF5 support
 Note that stashing HTTP Response data to disk is a simple convenience to incorporate. On the other hand, pywqp does **not** support saving pandas dataframes to disk. If you're sufficiently advanced to do that, you probably already know how to use HDF5; if not, there are plenty of resources out there (e.g. [Python and HDF5](http://shop.oreilly.com/product/0636920030249.do)
 
 
 <br/>
-#### Running the pywqp tests
+### Running the pywqp tests
 The project also contains a BDD test suite written in [lettuce](http://lettuce.it/). This is located in the `tests` folder. Shocking, I know.
 
 You can run pywqp's tests whenever you like. You **should** run them whenever you have made significant local changes. Especially if you want to submit a pull request, of course.
