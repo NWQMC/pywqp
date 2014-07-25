@@ -19,6 +19,7 @@ The project consists of the following components:
 
 [How do I stash my download to the local filesysstem?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#stashing-wqp-response-data-to-your-local-machine-with-stash_response)
 
+[How do I run the module tests?](#running-the-pywqp-tests)
 
 <br/>
 ### Using <tt>pywqp-client.py</tt> in your Python program
