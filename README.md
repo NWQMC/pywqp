@@ -13,11 +13,11 @@ The project consists of the following components:
 
 <br/>
 ### Quick answers
-[How Do I download WQP data from my Python program?](#downloading-wqp-data-request_wqp_data)
+[How Do I download WQP data from my Python program?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#downloading-wqp-data-with-request_wqp_data)
 
 [How do I convert my download to a pandas dataframe?](#converting-wqp-response-data-to-a-pandas-dataframe-with-response_as_pandas_dataframe)
 
-[How do I stash my download to the local filesysstem?](#stashing-wqp-response-data-to-your-local-machine-stash_response)
+[How do I stash my download to the local filesysstem?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#stashing-wqp-response-data-to-your-local-machine-with-stash_response)
 
 
 <br/>
