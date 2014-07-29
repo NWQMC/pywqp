@@ -208,3 +208,115 @@ result_mappings = {
 station_row_item = '/WQX/Organization/MonitoringLocation'
 result_row_item = '/WQX/Organization/Activity/Result'
 
+wqx_semantic_particles = [semantic_name.split('/') for semantic_name in wqx_semantic_names]
+
+particles = set()
+for particle_seq in wqx_semantic_particles:
+    for particle in particle_seq:
+        particles.add(particle)
+
+if True:
+    atoms = set()
+    import re
+    for particle in particles:
+        abbr = ''
+        for segment in re.findall('[A-Z][a-z]*', particle):
+            atoms.add(segment)
+            abbr += segment[0].lower()
+        print(particle + ' (' + abbr + ')')
+
+semantic_pieces = '\n\n\nsemantic_namepieces = (\n    \'' + '\',\n    \''.join(particles) + '\'\n)'
+
+with open('wqx_mappings.py', 'a') as wqx_mappings_script:
+    wqx_mappings_script.write(semantic_pieces)
+
+
+
+
+
+
+semantic_namepieces = (
+    'ActivityIdentifier',
+    'MethodIdentifierContext',
+    'MonitoringLocationTypeName',
+    'SampleAquifer',
+    'CountyCode',
+    'PrecisionValue',
+    'HorizontalCoordinateReferenceSystemDatumName',
+    'Time',
+    'SampleTissueAnatomyName',
+    'VerticalMeasure',
+    'StatisticalBaseCode',
+    'ResultWeightBasisText',
+    'VerticalCollectionMethodName',
+    'MeasureUnitCode',
+    'ResultDetectionConditionText',
+    'ResultSampleFractionText',
+    'MethodDescriptionText',
+    'WellDepthMeasure',
+    'OrganizationIdentifier',
+    'VerticalAccuracyMeasure',
+    'TimeZoneCode',
+    'ProjectIdentifier',
+    'MethodName',
+    'ActivityConductingOrganizationText',
+    'CountryCode',
+    'ResultStatusIdentifier',
+    'LaboratoryName',
+    'FormationTypeText',
+    'AnalysisStartDate',
+    'HorizontalAccuracyMeasure',
+    'DetectionQuantitationLimitTypeName',
+    'ResultLaboratoryCommentText',
+    'VerticalCoordinateReferenceSystemDatumName',
+    'SampleCollectionMethod',
+    'ResultTemperatureBasisText',
+    'AquiferTypeName',
+    'ResultParticleSizeBasisText',
+    'ActivityDepthAltitudeReferencePointText',
+    'ResultAnalyticalMethod',
+    'USGSPCode',
+    'ResultMeasureValue',
+    'ActivityTypeCode',
+    'DetectionQuantitationLimitMeasure',
+    'WellHoleDepthMeasure',
+    'CharacteristicName',
+    'HydrologicCondition',
+    'ResultDepthAltitudeReferencePointText',
+    'ActivityTopDepthHeightMeasure',
+    'ActivityBottomDepthHeightMeasure',
+    'LongitudeMeasure',
+    'ContributingDrainageAreaMeasure',
+    'AquiferName',
+    'ResultCommentText',
+    'SubjectTaxonomicName',
+    'HydrologicEvent',
+    'DrainageAreaMeasure',
+    'ActivityStartDate',
+    'ActivityMediaName',
+    'MonitoringLocationName',
+    'ResultValueTypeName',
+    'MethodIdentifier',
+    'MeasureValue',
+    'ResultMeasure',
+    'MonitoringLocationIdentifier',
+    'ActivityDepthHeightMeasure',
+    'HorizontalCollectionMethodName',
+    'ResultDepthHeightMeasure',
+    'HUCEightDigitCode',
+    'OrganizationFormalName',
+    'MonitoringLocationDescriptionText',
+    'ActivityCommentText',
+    'LatitudeMeasure',
+    'PreparationStartDate',
+    'ActivityEndDate',
+    'ActivityEndTime',
+    'SourceMapScaleNumeric',
+    'ConstructionDateText',
+    'ActivityStartTime',
+    'ResultTimeBasisText',
+    'MeasureQualifierCode',
+    'ActivityMediaSubdivisionName',
+    'SampleCollectionEquipmentName',
+    'StateCode'
+)

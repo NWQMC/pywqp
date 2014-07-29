@@ -7,3 +7,4 @@
 /tests/scratch/*
 #virtualenv
 env
+*/sandbox
