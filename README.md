@@ -64,7 +64,7 @@ This function makes a call to the Water Quality Portal server specified in the `
 host_url = 'http://waterqualitydata.us'
 resource_label = 'station'
 params = {'countrycode': 'US', 'statecode': 'US:19', 'countycode': 'US:19:015', 'characteristicName': 'pH'}
-result = client_instance.request_wqp_data(verb, host_url, resource_label, parameters, mime_type='text/csv')</tt>
+result = client_instance.request_wqp_data(verb, host_url, resource_label, params, mime_type='text/csv')</tt>
 </pre>
 
 <br/>
