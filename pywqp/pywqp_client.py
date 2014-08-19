@@ -4,6 +4,9 @@ import sys
 import os.path
 import pandas as pd
 import StringIO
+import wqx_mappings
+import xml.etree.ElementTree as et
+
 
 
 class RESTClient():
@@ -220,5 +223,4 @@ class RESTClient():
 
         file = open(filepathname, 'r')
         return file
-
 
