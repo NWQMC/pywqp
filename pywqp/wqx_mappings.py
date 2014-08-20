@@ -1,5 +1,5 @@
 import pandas
-from lxml import etree as et
+from lxml import etree
 
 '''
 MAPPING WQX TO ITS CANONICAL TABULAR FORM
@@ -89,6 +89,15 @@ the context of the current Logical Node.
 '''
 
 class WQXMapper:
+
+    # ANSI formatting codes
+    color_red = '\033[31m'
+    color_green = '\033[32m'
+    color_yellow = '\033[33m'
+    color_blue = '\033[34m'
+    color_magenta = '\033[35m'
+    color_cyan = '\033[36m'
+    color_stop = '\033[0m'
 
     # the ordered column names of the tabular form of a /Station/search dataset
     station_cols = (
@@ -195,7 +204,7 @@ class WQXMapper:
 
 
     # A formal statement of the mapping between column name and the tagnames
-    # of XML steps. Not used in code, but all paths relevant to /Station/search
+    # of XML descendant steps. Not used in code, but all paths relevant to /Station/search
     # data were derived from this and must be consistent with this.
     # Assumption: all tagnames are in the WQX namespace
     station_step_mappings = {"OrganizationIdentifier": ("WQX", "Organization", "OrganizationDescription", "OrganizationIdentifier"),
@@ -236,7 +245,7 @@ class WQXMapper:
 
 
     # A formal statement of the mapping between column name and the tagnames
-    # of XML steps. Not used in code, but all paths relevant to /Result/search
+    # of XML descendant steps. Not used in code, but all paths relevant to /Result/search
     # data were derived from this and must be consistent with this.
     # Assumption: all tagnames are in the WQX namespace
     result_step_mappings = {"OrganizationIdentifier": ("WQX", "Organization", "OrganizationDescription", "OrganizationIdentifier"),
@@ -425,13 +434,17 @@ class WQXMapper:
         'ResultDepthHeightMeasure/MeasureUnitCode': 'wqx:ResultDescription/wqx:ResultDepthHeightMeasure/wqx:MeasureUnitCode',
         'ResultTimeBasisText': 'wqx:ResultDescription/wqx:ResultTimeBasisText'}
 
+    # ---------- namespace prefix dictionary
+    wqx_namespace_url = 'http://qwwebservices.usgs.gov/schemas/WQX-Outbound/2_0/'
+    ns = {'wqx': wqx_namespace_url}
+
 
     # ---------- precompiled XPath query expressions ('nodeq') for retrieving 
     #            Logical Node nodesets:
 
     # relative expression from root
     # organizations
-    orgs_nodeq = etree.XPath('wqx:WQX/wqx:Organization', namespaces=ns)
+    orgs_nodeq = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
 
     # relative expressions from organization node
     # stations
@@ -447,40 +460,31 @@ class WQXMapper:
     # ---------- dictionaries of precompiled XPath query expressions ('colvalq') 
     #            for retrieving column values (keys are tabular column names):
 
-    # column values scoped to organizations
+    # column values scoped to an Organization node
     org_colvalq = {}
-    for colname in self.org_col_xpaths:
-        org_colvalq[colname] = etree.XPath(self.org_col_xpaths[colname] + '/text()', namespaces=ns)
+    for colname in org_col_xpaths:
+        org_colvalq[colname] = etree.XPath(org_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
 
-    # column values scoped to stations (Monitoring Locations)
+    # column values scoped to a Station (MonitoringLocation) node
     station_colvalq = {}
-    for colname in self.station_col_xpaths:
-        station_colvalq[colname] = etree.XPath(self.station_col_xpaths[colname] + '/text()', namespaces=ns)
+    for colname in station_col_xpaths:
+        station_colvalq[colname] = etree.XPath(station_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
 
-    # column values scoped to activities
+    # column values scoped to an Activity node
     activity_colvalq = {}
-    for colname in self.activity_col_xpaths:
-        activity_colvalq[colname] = etree.XPath(self.activity_col_xpaths[colname] + '/text()', namespaces=ns)
+    for colname in activity_col_xpaths:
+        activity_colvalq[colname] = etree.XPath(activity_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
 
-    # column values scoped to results
+    # column values scoped to a Result node
     result_colvalq = {}
-    for colname in self.result_col_xpaths:
-        result_colvalq[colname] = etree.XPath(self.result_col_xpaths[colname] + '/text()', namespaces=ns)
-
-
-    def empty_station_dataframe(self):
-        dataframe = pandas.DataFrame(index=self.station_cols)
-        return dataframe
-
-    def empty_result_dataframe(self):
-        dataframe = pandas.DataFrame(index=self.result_cols)
-        return dataframe
+    for colname in result_col_xpaths:
+        result_colvalq[colname] = etree.XPath(result_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
 
 
     def make_rowpart(self, node, valq):
         '''
-        Applies the colum val XPath query expression "valq" to the
-        XML tree node "node" and returns a dictionary whose keys
+        Applies the column val XPath query expression "valq" to the
+        XML context node "node" and returns a dictionary whose keys
         are column names and whose values are merges of the text values of all 
         matching nodes. (Note that if there are multiple such values, there
         were multiple sibling nodes with non-empty text. The "merge" is
@@ -494,13 +498,14 @@ class WQXMapper:
 
     def determine_table_type(self, response):
         '''
-        This method uses the response properties to determine what should be
-        done.
-        If the status code is not a 2xx, it will raise a BaseException.
-        If the status code is 2xx, it will inspect the response.url to determine
-        whether the resultset should be framed as a Station or Result table
-        (or, in future, a Biodata or Simplestation table.) If it cannot 
-        determine the correct table type, it will raise a BaseException.
+        This method inspects the response .status_code and .url properties
+        to determine what should be done.
+            - If the status code is not a 2xx, it will raise a BaseException.
+            - If the status code is 2xx, it will inspect the response.url to 
+        determinewhether the resultset should be framed as a Station or 
+        Result table (or, in future, a Biodata or Simplestation table.) 
+        If it cannot determine the correct table type, it will raise a 
+        BaseException.
         '''
         if response.status_code < 200 or response.status_code >= 300:
             raise(BaseException('The response is not OK: status code "' + 
@@ -518,81 +523,56 @@ class WQXMapper:
         return table_type
 
 
-    def xml_to_list_of_dicts(self, root):
+    def xml_to_list_of_dicts(self, table_type, root):
         rows = []
         orgs = self.orgs_nodeq(root)
+        print(self.color_cyan + str(len(orgs)) + WQXMapper.color_stop + ' orgs found')
         for org in orgs:
             org_rowpart = self.make_rowpart(org, self.org_colvalq)
-            activities = self.activities_nodeq(org)
-            for activity in activities:
-                activity_rowpart = self.make_rowpart(activity, self.activity_colvalq)
-                results = self.results_nodeq(activity)
-                for result in results:
-                    result_rowpart = self.make_rowpart(result, self.result_colvalq)
+            if table_type == 'result':
+                activities = self.activities_nodeq(org)
+                for activity in activities:
+                    activity_rowpart = self.make_rowpart(activity, self.activity_colvalq)
+                    results = self.results_nodeq(activity)
+                    for result in results:
+                        result_rowpart = self.make_rowpart(result, self.result_colvalq)
+                        this_row = {}
+                        this_row.update(org_rowpart)
+                        this_row.update(activity_rowpart)
+                        this_row.update(result_rowpart)
+                        rows.append(this_row)
+            elif table_type == 'station':
+                stations = self.tations_nodeq(org)
+                for station in stations:
+                    station_rowpart = self.make_rowpart(station, self.station_colvalq)
                     this_row = {}
                     this_row.update(org_rowpart)
-                    this_row.update(activity_rowpart)
-                    this_row.update(result_rowpart)
+                    this_row.update(station_rowpart)
                     rows.append(this_row)
         return rows
 
-
-    def make_dataframe_from_xml_response(self, response, wqx_namespace_url):
-        table_type = self.determine_table_type(response)
-
+    def make_dataframe_from_xml(self, table_type, root):
         dataframe = None
+        col_defs = ''
         if table_type == 'station':
-            dataframe = self.empty_station_dataframe()
+            col_defs = self.station_cols
         elif table_type == 'result':
-            dataframe = self.empty_result_dataframe()
-
-        if dataframe and response.content:
-            root = et.fromstring(response.content)
-
-            # these repeated elements should be processed once
-            wqx_org_nodes = root.findall('.//{' + wqx_namespace_url + '}OrganizationDescription')
-
-            activity_nodes = []
-            if table_type == 'result':
-                activity_nodes = root.findall('.//{' + wqx_namespace_url + '}Activity')
-
-            row_element = self.ns_row_nodepath(table_type, wqx_namespace_url)[-1]
-            row_nodes = root.findall('.//' + row_element)
-
-            print('wqx_org_nodes count: ' + str(len(wqx_org_nodes)))
-            print('activity_nodes count: ' + str(len(activity_nodes)))
-            print(table_type + ' row_nodes count: ' + str(len(row_nodes)))
-
-            # better to add a single list of dictionaries to the dataframe:
-            # it's reportedly agonizingly slow to add each row dict one by one
-            datarows = []
-
-            # demo
-            org_node = org_nodes[0]
-            if activity_nodes:
-                activity_node = activity_nodes[0]
-            row_node = row_nodes[0]
-
-            org_node_cols = {}
-            for colname in self.wqx_organization_cols.keys():
-                xpath = self.wqx_organization_cols[colname] + '/text()'
-                print(xpath)
-                org_node_cols[colname] = org_node.xpath(self.wqx_organization_cols[colname] + '/text()')
-
-            for colname in org_node_cols:
-                print('column ' + colname)
-                print('\t' + org_node_cols[colname])
-
+            col_defs = self.result_cols
             
-            row_dict = self.make_row_dict(table_type, root, row_node, org_node, activity_node)
-            
+        if col_defs:
+            data_rows = self.xml_to_list_of_dicts(table_type, root)
+            dataframe = pandas.DataFrame(data=data_rows, columns=col_defs)
         return dataframe
 
+    
+    def make_dataframe_from_xml_response(self, response):
 
-    def make_row_dict(self, table_type, root, row_node, org_node, activity_node):
+        retval = None
+        table_type = self.determine_table_type(response)
 
-
-
-        retval = {}
+        if table_type and response.content:
+            root = et.fromstring(response.content)
+            retval = make_dataframe_from_xml(table_type, root)
 
         return retval
+
