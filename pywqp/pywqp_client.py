@@ -153,8 +153,8 @@ class RESTClient():
         if content_type == 'text/csv':
             dataframe = pd.read_csv(StringIO.StringIO(response.content))
         elif content_type == 'text/xml' or content_type == 'application_xml':
-            # TODO this needs to be fixed, but it's complicated...
-            raise (BaseException, 'XML conversion to dataframe is not yet implemented.')
+            mapper = wqx_mappings.WQXMapper()
+            dataframe = mapper.make_dataframe_from_http_response(response)
         return dataframe
 
     def stash_response(self, response, filepathname, raw_http=False):

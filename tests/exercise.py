@@ -37,21 +37,22 @@ print('imports done')
 
 # parsing a local WQX XML file
 # (any valid filepath)
-tree = etree.parse('../sandbox/boone_nwis_result_baseline.xml')
+#tree = etree.parse('../sandbox/boone_nwis_result_baseline.xml')
+tree = etree.parse('../sandbox/boone_stations_baseline.xml')
 root = tree.getroot()
 print('parsed')
 
 
 # testing wqx_mapper orgs.nodeq precompiled query
-orgsfinder = mapper.orgs_nodeq
+orgsfinder = mapper.context_xpaths_compl['org']
 orgsfinder_orgs = orgsfinder(root)
 print('orgsfinder finds ' + str(len(orgsfinder_orgs)) + ' orgs.')
 
 # what row out of the dataset to we want to compare?
-row_to_display = 2000
+row_to_display = 200
 
 # what kind of dataset is it? 'result' or 'station'?
-table_type = 'result'
+table_type = 'station'
 
 # testing wqx_mapper xml_to_dict_of_lists
 print('\n\n' + color_cyan + 'DATASTRUCTURE FROM xml_to_dict_of_lists: row ' + str(row_to_display) + color_stop)
@@ -67,7 +68,7 @@ if datadict1:
                 print(str(count) + ' rows in datadict1 elements')
             # print the row
             print(colname + ': ' + color_cyan + datadict1[colname][rownum] + color_stop)
-    print(color_cyan + 'done with xml_to_listt_of_dicts: row ' + str(row_to_display) + color_stop)
+    print(color_cyan + 'done with xml_to_list_of_dicts: row ' + str(row_to_display) + color_stop)
 
 
 # testing wqx_mapper xml_to_list_of_dicts
@@ -80,11 +81,19 @@ if datadict2:
     print(color_magenta + 'done with xml_to_dict_of_lists: row ' + str(row_to_display) + color_stop)
         
 
-# make pandas.DataFrame from one of the data structures
+# make pandas.DataFrame from one of the data structures (columns-first)
 if datadict1:
     dataframe = pandas.DataFrame(data=datadict1, columns=wqx_mappings.tabular_defs[table_type])
     print('\n\n' + color_green + 'calling dataframe irow(' + str(row_to_display) + ')' + color_stop)
     print(dataframe.irow(row_to_display))
     print(color_green + 'done with irow(' + str(row_to_display) + ')' + color_stop)
+
+# make pandas.DataFrame from the other data structure (rows-first)
+if datadict2:
+    dataframe = pandas.DataFrame(data=datadict2, columns=wqx_mappings.tabular_defs[table_type])
+    print('\n\n' + color_yellow + 'calling dataframe irow(' + str(row_to_display) + ')' + color_stop)
+    print(dataframe.irow(row_to_display))
+    print(color_yellow + 'done with irow(' + str(row_to_display) + ')' + color_stop)
+
 
 print

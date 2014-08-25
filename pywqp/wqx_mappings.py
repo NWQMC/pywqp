@@ -95,6 +95,8 @@ the context of the current Logical Node.
 # Al paths relevant to /Station/search and /Result/search tabular
 # data were derived from this and must be consistent with this.
 # All tagnames are in the WQX 2.0 namespace.
+# 
+# For convenience, this dict's source is string-sorted by column name.
 #
 # For semantic column definitions, see 
 # http://www.waterqualitydata.us/portal_userguide.jsp#WQPUserGuide-Retrieve
@@ -195,13 +197,11 @@ column_mappings = {
     'WellHoleDepthMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'WellHoleDepthMeasure', 'MeasureValue']}
 
 
-# WQX dataset types defined for tabular representation
-known_table_types = ('station', 'result')
-
 #tabular definitions as column sequences
 tabular_defs = {}
 
-# the ordered column names of the tabular form of a /Station/search dataset
+# the ordered column names (as defined in column_mappings) of the 
+# tabular form of a Water Quality Portal /Station/search dataset
 tabular_defs['station'] = (
     'OrganizationIdentifier',
     'OrganizationFormalName',
@@ -239,7 +239,8 @@ tabular_defs['station'] = (
     'WellHoleDepthMeasure/MeasureValue',
     'WellHoleDepthMeasure/MeasureUnitCode')
 
-# the ordered column names of the tabular form of a /Result/search dataset
+# the ordered column names (as defined in column_mappings) of the 
+# tabular form of a Water Quality Portal /Result/search dataset
 tabular_defs['result'] = (
     'OrganizationIdentifier',
     'OrganizationFormalName',
@@ -305,12 +306,14 @@ tabular_defs['result'] = (
     'PreparationStartDate')
 
 
+val_xpaths = {}
+
 # common (i.e. shared across multiple rows) column defs descended from /WQX/Organization
 # Fortunately, these column defs are identical in Station and Result mappings.
 # The column name is the key. The value is the RELATIVE XPath from
 # /WQX/Organization, obeying the convention that "wqx" is the 
 #  XPath expression's expected alias for the WQX namespace.
-org_col_xpaths = {
+val_xpaths['org'] = {
     'OrganizationIdentifier': 'wqx:OrganizationDescription/wqx:OrganizationIdentifier',
     'OrganizationFormalName': 'wqx:OrganizationDescription/wqx:OrganizationFormalName'}
 
@@ -319,7 +322,7 @@ org_col_xpaths = {
 # The column name is the key. The value is the RELATIVE path from
 # /WQX/Organization/Activity, obeying the convention that "wqx" is the 
 #  XPath expression's expected alias for the WQX namespace.
-activity_col_xpaths = {
+val_xpaths['activity'] = {
     'ActivityIdentifier': 'wqx:ActivityDescription/wqx:ActivityIdentifier',
     'ActivityTopDepthHeightMeasure/MeasureUnitCode': 'wqx:ActivityDescription/wqx:ActivityTopDepthHeightMeasure/wqx:MeasureUnitCode',
     'SampleAquifer': 'wqx:ActivityDescription/wqx:SampleAquifer',
@@ -353,7 +356,7 @@ activity_col_xpaths = {
 # The column name is the key. The value is the RELATIVE XPath from
 # /WQX/Organization/MonitoringLocation, obeying the convention that "wqx" is the 
 #  XPath expression's expected alias for the WQX namespace.
-station_col_xpaths={'DrainageAreaMeasure/MeasureUnitCode': 'wqx:MonitoringLocationIdentity/wqx:DrainageAreaMeasure/wqx:MeasureUnitCode',
+val_xpaths['station'] = {'DrainageAreaMeasure/MeasureUnitCode': 'wqx:MonitoringLocationIdentity/wqx:DrainageAreaMeasure/wqx:MeasureUnitCode',
     'MonitoringLocationTypeName': 'wqx:MonitoringLocationIdentity/wqx:MonitoringLocationTypeName',
     'HorizontalCoordinateReferenceSystemDatumName': 'wqx:MonitoringLocationGeospatial/wqx:HorizontalCoordinateReferenceSystemDatumName',
     'DrainageAreaMeasure/MeasureValue': 'wqx:MonitoringLocationIdentity/wqx:DrainageAreaMeasure/wqx:MeasureValue',
@@ -393,7 +396,7 @@ station_col_xpaths={'DrainageAreaMeasure/MeasureUnitCode': 'wqx:MonitoringLocati
 # /WQX/Organization/Activity/Result, obeying the convention that "wqx" is the 
 #  XPath expression's expected alias for the WQX namespace.
 
-result_col_xpaths = {
+val_xpaths['result'] = {
     'PrecisionValue': 'wqx:ResultDescription/wqx:DataQuality/wqx:PrecisionValue',
     'ResultAnalyticalMethod/MethodIdentifierContext': 'wqx:ResultAnalyticalMethod/wqx:MethodIdentifierContext',
     'SampleTissueAnatomyName': 'wqx:BiologicalResultDescription/wqx:SampleTissueAnatomyName',
@@ -437,47 +440,38 @@ class WQXMapper:
     wqx_namespace_url = 'http://qwwebservices.usgs.gov/schemas/WQX-Outbound/2_0/'
     ns = {'wqx': wqx_namespace_url}
 
-
+    # logical context nodes
+    context_xpaths_compl = {}
+    
     # ---------- precompiled XPath query expressions ('nodeq') for retrieving 
     #            Logical Node nodesets:
 
     # relative expression from root
     # organizations
-    orgs_nodeq = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
+    context_xpaths_compl['org'] = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
 
     # relative expressions from organization node
     # stations
-    stations_nodeq = etree.XPath('wqx:MonitoringLocation', namespaces=ns)
+    context_xpaths_compl['station'] = etree.XPath('wqx:MonitoringLocation', namespaces=ns)
     # activities
-    activities_nodeq = etree.XPath('wqx:Activity', namespaces=ns)
+    context_xpaths_compl['activity'] = etree.XPath('wqx:Activity', namespaces=ns)
 
     # relative expression from activity node
     # results
-    results_nodeq = etree.XPath('wqx:Result', namespaces=ns)
+    context_xpaths_compl['result'] = etree.XPath('wqx:Result', namespaces=ns)
 
 
-    # ---------- dictionaries of precompiled XPath query expressions ('colvalq') 
+    # ---------- dictionaries of precompiled XPath query expressions  
     #            for retrieving column values (keys are tabular column names):
 
-    # column values scoped to an Organization node
-    org_colvalq = {}
-    for colname in org_col_xpaths:
-        org_colvalq[colname] = etree.XPath(org_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
-
-    # column values scoped to a Station (MonitoringLocation) node
-    station_colvalq = {}
-    for colname in station_col_xpaths:
-        station_colvalq[colname] = etree.XPath(station_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
-
-    # column values scoped to an Activity node
-    activity_colvalq = {}
-    for colname in activity_col_xpaths:
-        activity_colvalq[colname] = etree.XPath(activity_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
-
-    # column values scoped to a Result node
-    result_colvalq = {}
-    for colname in result_col_xpaths:
-        result_colvalq[colname] = etree.XPath(result_col_xpaths[colname] + '/text()', namespaces=ns, smart_strings=False)
+    val_xpaths_compl = {}
+    for node in context_xpaths_compl.keys():
+        print('doing node \'' + node + '\'')
+        val_xpaths_compl[node] = {}
+        for colname in val_xpaths[node].keys():
+            cur_node_dict = val_xpaths[node]
+            cur_xpath = etree.XPath(cur_node_dict[colname] + '/text()', namespaces=ns, smart_strings=False)
+            val_xpaths_compl[node][colname] = cur_xpath
 
 
     def make_rowpart(self, node, valq):
@@ -529,10 +523,12 @@ class WQXMapper:
         to construct a tabular WQX representation of the information contained
         in the XML.
 
-        The tabular representation is a dictionary whose keys are column names.
+        The tabular representation is "column-first": a dictionary whose keys 
+        are column names.
+
         Each column's value is a list of values. The length of each list is
         equal to the number of rows that will be represented in the table.
-        The values in a list are determined by the valsq XPath expressions, 
+        The values in a list are determined by the val XPath expressions, 
         based on the Logical Nodes in context when the row was evaluated.
 
         The Lists are all the same length. When the XML does not supply a
@@ -550,18 +546,18 @@ class WQXMapper:
         does not attempt XML validation.
         '''
         datadict = {}
-        for colname in tabular_defs['result']:
+        for colname in tabular_defs[table_type]:
             datadict[colname] = []
-        orgs = self.orgs_nodeq(root)
+        orgs = self.context_xpaths_compl['org'](root)
         for org in orgs:
-            org_rowpart = self.make_rowpart(org, self.org_colvalq)
+            org_rowpart = self.make_rowpart(org, self.val_xpaths_compl['org'])
             if table_type == 'result':
-                activities = self.activities_nodeq(org)
+                activities = self.context_xpaths_compl['activity'](org)
                 for activity in activities:
-                    activity_rowpart = self.make_rowpart(activity, self.activity_colvalq)
-                    results = self.results_nodeq(activity)
+                    activity_rowpart = self.make_rowpart(activity, self.val_xpaths_compl['activity'])
+                    results = self.context_xpaths_compl['result'](activity)
                     for result in results:
-                        result_rowpart = self.make_rowpart(result, self.result_colvalq)
+                        result_rowpart = self.make_rowpart(result, self.val_xpaths_compl['result'])
                         this_row = {}
                         this_row.update(org_rowpart)
                         this_row.update(activity_rowpart)
@@ -572,13 +568,13 @@ class WQXMapper:
                                 val = ''
                             datadict[colname].append(val)
             elif table_type == 'station':
-                stations = self.stations_nodeq(org)
+                stations = self.context_xpaths_compl['station'](org)
                 for station in stations:
-                    station_rowpart = self.make_rowpart(station, self.station_colvalq)
+                    station_rowpart = self.make_rowpart(station, self.val_xpaths_compl['station'])
                     this_row = {}
                     this_row.update(org_rowpart)
                     this_row.update(station_rowpart)
-                    for colname in tabular_defs['result']:
+                    for colname in tabular_defs['station']:
                         val = this_row.get(colname)
                         if not val:
                             val = ''
@@ -592,10 +588,10 @@ class WQXMapper:
         to construct a tabular WQX representation of the information contained
         in the XML.
 
-        The tabular representation is a list of dictionaries. Each dict in
-        the list corresponds to a table row. The dictionary keys are column names,
-        and the values are the values extracted from the XML according to the 
-        nodeq and valsq XPath expressions in wqx_mappings.
+        The tabular representation is "row-first":  a list of dictionaries. 
+        Each dict in the list corresponds to a table row. The dictionary keys are 
+        column names, and the values are the values extracted from the XML according 
+        to the context and val XPath expressions in wqx_mappings.
 
         The number of rows in the tabular representation is equal to the
         length of the returned list.
@@ -608,25 +604,25 @@ class WQXMapper:
         does not attempt XML validation.
         '''
         rows = []
-        orgs = self.orgs_nodeq(root)
+        orgs = self.context_xpaths_compl['org'](root)
         for org in orgs:
-            org_rowpart = self.make_rowpart(org, self.org_colvalq)
+            org_rowpart = self.make_rowpart(org, self.val_xpaths_compl['org'])
             if table_type == 'result':
-                activities = self.activities_nodeq(org)
+                activities = self.context_xpaths_compl['activity'](org)
                 for activity in activities:
-                    activity_rowpart = self.make_rowpart(activity, self.activity_colvalq)
-                    results = self.results_nodeq(activity)
+                    activity_rowpart = self.make_rowpart(activity, self.val_xpaths_compl['activity'])
+                    results = self.context_xpaths_compl['result'](activity)
                     for result in results:
-                        result_rowpart = self.make_rowpart(result, self.result_colvalq)
+                        result_rowpart = self.make_rowpart(result, self.val_xpaths_compl['result'])
                         this_row = {}
                         this_row.update(org_rowpart)
                         this_row.update(activity_rowpart)
                         this_row.update(result_rowpart)
                         rows.append(this_row)
             elif table_type == 'station':
-                stations = self.stations_nodeq(org)
+                stations = self.context_xpaths_compl['station'](org)
                 for station in stations:
-                    station_rowpart = self.make_rowpart(station, self.station_colvalq)
+                    station_rowpart = self.make_rowpart(station, self.val_xpaths_compl['station'])
                     this_row = {}
                     this_row.update(org_rowpart)
                     this_row.update(station_rowpart)
@@ -634,7 +630,7 @@ class WQXMapper:
         return rows
 
 
-    def make_dataframe_from_xml(self, table_type, root):
+    def make_dataframe_from_xml(self, table_type, root, columns_first=True):
         '''
         This method accepts a known table_type and an XML root node. It returns
         a pandas.DataFrame containing the tabular representation of the data
@@ -650,12 +646,15 @@ class WQXMapper:
         col_defs = tabular_defs[table_type]
             
         if col_defs:
-            data_rows = self.xml_to_list_of_dicts(table_type, root)
+            if columns_first:
+                data_rows = self.xml_to_dict_of_lists(table_type, root)
+            else:
+                data_rows = self.xml_to_list_of_dicts(table_type, root)
             dataframe = pandas.DataFrame(data=data_rows, columns=col_defs)
         return dataframe
 
-    
-    def make_dataframe_from_xml_response(self, response):
+
+    def make_dataframe_from_http_response(self, response, columns_first=True):
         '''
         This method accepts a requests.response HTTP Response object.
         The assumption is that this response was obtained by calling
@@ -676,7 +675,7 @@ class WQXMapper:
 
         if table_type and response.content:
             root = et.fromstring(response.content)
-            retval = make_dataframe_from_xml(table_type, root)
+            retval = make_dataframe_from_xml(table_type, root, columns_first)
 
         return retval
 
