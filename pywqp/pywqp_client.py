@@ -150,9 +150,9 @@ class RESTClient():
             return None
 
         dataframe = None
-        if content_type == 'text/csv':
+        if content_type.startswith('text/csv'):
             dataframe = pd.read_csv(StringIO.StringIO(response.content))
-        elif content_type == 'text/xml' or content_type == 'application_xml':
+        elif content_type.startswith('text/xml') or content_type.startswith('application_xml'):
             mapper = wqx_mappings.WQXMapper()
             dataframe = mapper.make_dataframe_from_http_response(response)
         return dataframe
