@@ -1,5 +1,5 @@
 import pandas
-from lxml import etree
+from lxml import etree as et
 
 '''
 MAPPING WQX TO ITS CANONICAL TABULAR FORM
