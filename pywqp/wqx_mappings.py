@@ -448,17 +448,17 @@ class WQXMapper:
 
     # relative expression from root
     # organizations
-    context_xpaths_compl['org'] = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
+    context_xpaths_compl['org'] = et.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
 
     # relative expressions from organization node
     # stations
-    context_xpaths_compl['station'] = etree.XPath('wqx:MonitoringLocation', namespaces=ns)
+    context_xpaths_compl['station'] = et.XPath('wqx:MonitoringLocation', namespaces=ns)
     # activities
-    context_xpaths_compl['activity'] = etree.XPath('wqx:Activity', namespaces=ns)
+    context_xpaths_compl['activity'] = et.XPath('wqx:Activity', namespaces=ns)
 
     # relative expression from activity node
     # results
-    context_xpaths_compl['result'] = etree.XPath('wqx:Result', namespaces=ns)
+    context_xpaths_compl['result'] = et.XPath('wqx:Result', namespaces=ns)
 
 
     # ---------- dictionaries of precompiled XPath query expressions  
@@ -470,7 +470,7 @@ class WQXMapper:
         val_xpaths_compl[node] = {}
         for colname in val_xpaths[node].keys():
             cur_node_dict = val_xpaths[node]
-            cur_xpath = etree.XPath(cur_node_dict[colname] + '/text()', namespaces=ns, smart_strings=False)
+            cur_xpath = et.XPath(cur_node_dict[colname] + '/text()', namespaces=ns, smart_strings=False)
             val_xpaths_compl[node][colname] = cur_xpath
 
 
