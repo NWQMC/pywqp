@@ -498,6 +498,23 @@ class WQXMapper:
     context_xpaths_compl = {}
     for nodename in context_xpaths:
         context_xpaths_compl[nodename] = etree.XPath(context_xpaths[nodename], namespaces=ns)
+    
+    # ---------- precompiled XPath query expressions ('nodeq') for retrieving 
+    #            Logical Node nodesets:
+
+    # relative expression from root
+    # organizations
+    context_xpaths_compl['org'] = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
+
+    # relative expressions from organization node
+    # stations
+    context_xpaths_compl['station'] = etree.XPath('wqx:MonitoringLocation', namespaces=ns)
+    # activities
+    context_xpaths_compl['activity'] = etree.XPath('wqx:Activity', namespaces=ns)
+
+    # relative expression from activity node
+    # results
+    context_xpaths_compl['result'] = etree.XPath('wqx:Result', namespaces=ns)
 
 
     # ---------- dictionaries of precompiled XPath query expressions  

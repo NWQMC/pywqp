@@ -132,6 +132,7 @@ class RESTClient():
             return None
         content_type = response.headers.get('content-type')
         if content_type:
+            # get rid of charset spec
             content_type = content_type.split(';')[0]
         else:
             # TODO: determine if there's any good default value
@@ -164,10 +165,10 @@ class RESTClient():
         """
         This function saves the requests.response parameter as a file.
         "raw_http" is a boolean stating whether to write the full 
-            HTTP response: start-line, headers, an empty line, and 
-            message body, when the file is stashed (this feature is
-            intended primarily for troubleshooting network/HTTP issues.)
-            If True, ".http" will be appended to the filename
+        HTTP response: start-line, headers, an empty line, and 
+        message body, when the file is stashed (this feature is
+        intended primarily for troubleshooting network/HTTP issues.)
+        If True, ".http" will be appended to the filename
         """
         content_type = self.get_content_type(response)
 
