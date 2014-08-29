@@ -49,7 +49,7 @@ tabular form.
 
 TWO KINDS OF XPATH EXPRESSIONS IN MAPPINGS
 
-A NODESET XPath expression selects Logical Nodes:
+A NODESET XPath expression selects Context Nodes:
 
     The Organization Nodeset expression is absolute (or relative to the 
     document root, which is effectively the same thing.)
@@ -90,117 +90,170 @@ the context of the current Logical Node.
 
 '''
 
-# A formal and complete statement of the mapping between a (semantic) column
-# name and the tagnames of XML descendant steps for WQX data. 
-# Al paths relevant to /Station/search and /Result/search tabular
-# data were derived from this and must be consistent with this.
-# All tagnames are in the WQX 2.0 namespace.
+
+# namespace prefix dictionary
+ns = {'wqx': 'http://qwwebservices.usgs.gov/schemas/WQX-Outbound/2_0/'}
+
+
+# Absolute XPath expressions defining context nodes. "Context nodes"
+# are nodes that define certain structural patterns in the XML tree:
+# they contain value child nodes, and possibly other context nodes.
 # 
-# For convenience, this dict's source is string-sorted by column name.
+# Each kind of tabular definition is associated with a context "leaf" node: one
+# that has no context node descendants (or whose context node descendants
+# are ignored according to the specification of the tabular definition.) 
+# The corresponding tabular row is assembled from the value nodes of 
+# the leaf node, and the value nodes of its context ancestors.
+context_descriptors = {
+    'org':      '/wqx:WQX/wqx:Organization',
+    'station':  '/wqx:WQX/wqx:Organization/wqx:MonitoringLocation',
+    'activity': '/wqx:WQX/wqx:Organization/wqx:Activity',
+    'result':   '/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result'}
+
+
+# It's logically efficient to express kinds of context nodes that
+# cannot be ancestors of a particular kind of context node.
+# (we skip 'activity' because it doesn't correspond to a table type.)
+context_descriptor_exclusions = {
+    'station': ('activity', 'result'),
+    'result': ('station',)
+}
+
+
+# Derived XPath expressions for obtaining a set of child context nodes
+# from a given useful context.
+#
+# The Org context nodes are absolute XPath expressions: every record in an
+# Outbound WQX document belongs to an Organization.
+#
+# Station andAactivity nodes are relative expressions from within the context 
+# of a given org node.
+#
+# Result nodes are relative expressions from within the context of a
+# given activity node.
+context_xpaths = {
+    'org': '/wqx:WQX/wqx:Organization',
+    'station': 'wqx:MonitoringLocation',
+    'activity': 'wqx:Activity',
+    'result': 'wqx:Result'}
+
+
+# Semantic column definitions assigned to absolute position XPaths within a WQX
+# XML document. 
+#
+# Note that it's rare, but possible, for a given Column Definition to occur in more
+# than one location. For example, "MonitoringLocationIdentifier" is the result of
+# two separate XPath selectors: one that applies to "station" data, and one
+# that applies to "result" data. The two are distinguished by inspecting the
+# ancestor paths for the occurrence of "station" and "result" context_mapping
+# entries respectively.
 #
 # For semantic column definitions, see 
 # http://www.waterqualitydata.us/portal_userguide.jsp#WQPUserGuide-Retrieve
+
 column_mappings = {
-            'ActivityBottomDepthHeightMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityBottomDepthHeightMeasure', 'MeasureUnitCode'],
-    'ActivityBottomDepthHeightMeasure/MeasureValue': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityBottomDepthHeightMeasure', 'MeasureValue'],
-    'ActivityCommentText': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityCommentText'],
-    'ActivityConductingOrganizationText': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityConductingOrganizationText'],
-    'ActivityDepthAltitudeReferencePointText': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityDepthAltitudeReferencePointText'],
-    'ActivityDepthHeightMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityDepthHeightMeasure', 'MeasureUnitCode'],
-    'ActivityDepthHeightMeasure/MeasureValue': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityDepthHeightMeasure', 'MeasureValue'],
-    'ActivityEndDate': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityEndDate'],
-    'ActivityEndTime/Time': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityEndTime', 'Time'],
-    'ActivityEndTime/TimeZoneCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityEndTime', 'TimeZoneCode'],
-    'ActivityIdentifier': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityIdentifier'],
-    'ActivityMediaName': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityMediaName'],
-    'ActivityMediaSubdivisionName': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityMediaSubdivisionName'],
-    'ActivityStartDate': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityStartDate'],
-    'ActivityStartTime/Time': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityStartTime', 'Time'],
-    'ActivityStartTime/TimeZoneCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityStartTime', 'TimeZoneCode'],
-    'ActivityTopDepthHeightMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityTopDepthHeightMeasure', 'MeasureUnitCode'],
-    'ActivityTopDepthHeightMeasure/MeasureValue': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityTopDepthHeightMeasure', 'MeasureValue'],
-    'ActivityTypeCode': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ActivityTypeCode'],
-    'AnalysisStartDate': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'AnalysisStartDate'],
-    'AquiferName': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'AquiferName'],
-    'AquiferTypeName': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'AquiferTypeName'],
-    'CharacteristicName': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'CharacteristicName'],
-    'ConstructionDateText': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'ConstructionDateText'],
-    'ContributingDrainageAreaMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'ContributingDrainageAreaMeasure', 'MeasureUnitCode'],
-    'ContributingDrainageAreaMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'ContributingDrainageAreaMeasure', 'MeasureValue'],
-    'CountryCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'CountryCode'],
-    'CountyCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'CountyCode'],
-    'DetectionQuantitationLimitMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'ResultDetectionQuantitationLimit', 'DetectionQuantitationLimitMeasure', 'MeasureUnitCode'],
-    'DetectionQuantitationLimitMeasure/MeasureValue': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'ResultDetectionQuantitationLimit', 'DetectionQuantitationLimitMeasure', 'MeasureValue'],
-    'DetectionQuantitationLimitTypeName': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'ResultDetectionQuantitationLimit', 'DetectionQuantitationLimitTypeName'],
-    'DrainageAreaMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'DrainageAreaMeasure', 'MeasureUnitCode'],
-    'DrainageAreaMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'DrainageAreaMeasure', 'MeasureValue'],
-    'FormationTypeText': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'FormationTypeText'],
-    'HUCEightDigitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'HUCEightDigitCode'],
-    'HorizontalAccuracyMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'HorizontalAccuracyMeasure', 'MeasureUnitCode'],
-    'HorizontalAccuracyMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'HorizontalAccuracyMeasure', 'MeasureValue'],
-    'HorizontalCollectionMethodName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'HorizontalCollectionMethodName'],
-    'HorizontalCoordinateReferenceSystemDatumName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'HorizontalCoordinateReferenceSystemDatumName'],
-    'HydrologicCondition': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'HydrologicCondition'],
-    'HydrologicEvent': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'HydrologicEvent'],
-    'LaboratoryName': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'LaboratoryName'],
-    'LatitudeMeasure': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'LatitudeMeasure'],
-    'LongitudeMeasure': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'LongitudeMeasure'],
-    'MeasureQualifierCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultMeasure', 'MeasureQualifierCode'],
-    'MethodDescriptionText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultAnalyticalMethod', 'MethodDescriptionText'],
-    'MonitoringLocationDescriptionText': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'MonitoringLocationDescriptionText'],
-    'MonitoringLocationIdentifier': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'MonitoringLocationIdentifier'],
-    'MonitoringLocationName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'MonitoringLocationName'],
-    'MonitoringLocationTypeName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationIdentity', 'MonitoringLocationTypeName'],
-    'OrganizationFormalName': ['WQX', 'Organization', 'OrganizationDescription', 'OrganizationFormalName'],
-    'OrganizationIdentifier': ['WQX', 'Organization', 'OrganizationDescription', 'OrganizationIdentifier'],
-    'PrecisionValue': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'DataQuality', 'PrecisionValue'],
-    'PreparationStartDate': ['WQX', 'Organization', 'Activity', 'Result', 'LabSamplePreparation', 'PreparationStartDate'],
-    'ProjectIdentifier': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'ProjectIdentifier'],
-    'ResultAnalyticalMethod/MethodIdentifier': ['WQX', 'Organization', 'Activity', 'Result', 'ResultAnalyticalMethod', 'MethodIdentifier'],
-    'ResultAnalyticalMethod/MethodIdentifierContext': ['WQX', 'Organization', 'Activity', 'Result', 'ResultAnalyticalMethod', 'MethodIdentifierContext'],
-    'ResultAnalyticalMethod/MethodName': ['WQX', 'Organization', 'Activity', 'Result', 'ResultAnalyticalMethod', 'MethodName'],
-    'ResultCommentText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultCommentText'],
-    'ResultDepthAltitudeReferencePointText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultDepthAltitudeReferencePointText'],
-    'ResultDepthHeightMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultDepthHeightMeasure', 'MeasureUnitCode'],
-    'ResultDepthHeightMeasure/MeasureValue': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultDepthHeightMeasure', 'MeasureValue'],
-    'ResultDetectionConditionText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultDetectionConditionText'],
-    'ResultLaboratoryCommentText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultLabInformation', 'ResultLaboratoryCommentText'],
-    'ResultMeasure/MeasureUnitCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultMeasure', 'MeasureUnitCode'],
-    'ResultMeasureValue': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultMeasure', 'ResultMeasureValue'],
-    'ResultParticleSizeBasisText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultParticleSizeBasisText'],
-    'ResultSampleFractionText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultSampleFractionText'],
-    'ResultStatusIdentifier': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultStatusIdentifier'],
-    'ResultTemperatureBasisText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultTemperatureBasisText'],
-    'ResultTimeBasisText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultTimeBasisText'],
-    'ResultValueTypeName': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultValueTypeName'],
-    'ResultWeightBasisText': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'ResultWeightBasisText'],
-    'SampleAquifer': ['WQX', 'Organization', 'Activity', 'ActivityDescription', 'SampleAquifer'],
-    'SampleCollectionEquipmentName': ['WQX', 'Organization', 'Activity', 'SampleDescription', 'SampleCollectionEquipmentName'],
-    'SampleCollectionMethod/MethodIdentifier': ['WQX', 'Organization', 'Activity', 'SampleDescription', 'SampleCollectionMethod', 'MethodIdentifier'],
-    'SampleCollectionMethod/MethodIdentifierContext': ['WQX', 'Organization', 'Activity', 'SampleDescription', 'SampleCollectionMethod', 'MethodIdentifierContext'],
-    'SampleCollectionMethod/MethodName': ['WQX', 'Organization', 'Activity', 'SampleDescription', 'SampleCollectionMethod', 'MethodName'],
-    'SampleTissueAnatomyName': ['WQX', 'Organization', 'Activity', 'Result', 'BiologicalResultDescription', 'SampleTissueAnatomyName'],
-    'SourceMapScaleNumeric': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'SourceMapScaleNumeric'],
-    'StateCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'StateCode'],
-    'StatisticalBaseCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'StatisticalBaseCode'],
-    'SubjectTaxonomicName': ['WQX', 'Organization', 'Activity', 'Result', 'BiologicalResultDescription', 'SubjectTaxonomicName'],
-    'USGSPCode': ['WQX', 'Organization', 'Activity', 'Result', 'ResultDescription', 'USGSPCode'],
-    'VerticalAccuracyMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalAccuracyMeasure', 'MeasureUnitCode'],
-    'VerticalAccuracyMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalAccuracyMeasure', 'MeasureValue'],
-    'VerticalCollectionMethodName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalCollectionMethodName'],
-    'VerticalCoordinateReferenceSystemDatumName': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalCoordinateReferenceSystemDatumName'],
-    'VerticalMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalMeasure', 'MeasureUnitCode'],
-    'VerticalMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'MonitoringLocationGeospatial', 'VerticalMeasure', 'MeasureValue'],
-    'WellDepthMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'WellDepthMeasure', 'MeasureUnitCode'],
-    'WellDepthMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'WellDepthMeasure', 'MeasureValue'],
-    'WellHoleDepthMeasure/MeasureUnitCode': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'WellHoleDepthMeasure', 'MeasureUnitCode'],
-    'WellHoleDepthMeasure/MeasureValue': ['WQX', 'Organization', 'MonitoringLocation', 'WellInformation', 'WellHoleDepthMeasure', 'MeasureValue']}
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:MonitoringLocationIdentifier": "MonitoringLocationIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityBottomDepthHeightMeasure/wqx:MeasureUnitCode": "ActivityBottomDepthHeightMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityBottomDepthHeightMeasure/wqx:MeasureValue": "ActivityBottomDepthHeightMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityCommentText": "ActivityCommentText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityConductingOrganizationText": "ActivityConductingOrganizationText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityDepthAltitudeReferencePointText": "ActivityDepthAltitudeReferencePointText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityDepthHeightMeasure/wqx:MeasureUnitCode": "ActivityDepthHeightMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityDepthHeightMeasure/wqx:MeasureValue": "ActivityDepthHeightMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityEndDate": "ActivityEndDate",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityEndTime/wqx:Time": "ActivityEndTime/Time",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityEndTime/wqx:TimeZoneCode": "ActivityEndTime/TimeZoneCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityIdentifier": "ActivityIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityMediaName": "ActivityMediaName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityMediaSubdivisionName": "ActivityMediaSubdivisionName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityStartDate": "ActivityStartDate",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityStartTime/wqx:Time": "ActivityStartTime/Time",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityStartTime/wqx:TimeZoneCode": "ActivityStartTime/TimeZoneCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityTopDepthHeightMeasure/wqx:MeasureUnitCode": "ActivityTopDepthHeightMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityTopDepthHeightMeasure/wqx:MeasureValue": "ActivityTopDepthHeightMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ActivityTypeCode": "ActivityTypeCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:HydrologicCondition": "HydrologicCondition",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:HydrologicEvent": "HydrologicEvent",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:MonitoringLocationIdentifier": "MonitoringLocationIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:ProjectIdentifier": "ProjectIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:ActivityDescription/wqx:SampleAquifer": "SampleAquifer",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:BiologicalResultDescription/wqx:SampleTissueAnatomyName": "SampleTissueAnatomyName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:BiologicalResultDescription/wqx:SubjectTaxonomicName": "SubjectTaxonomicName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:LabSamplePreparation/wqx:PreparationStartDate": "PreparationStartDate",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultAnalyticalMethod/wqx:MethodDescriptionText": "MethodDescriptionText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultAnalyticalMethod/wqx:MethodIdentifier": "ResultAnalyticalMethod/MethodIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultAnalyticalMethod/wqx:MethodIdentifierContext": "ResultAnalyticalMethod/MethodIdentifierContext",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultAnalyticalMethod/wqx:MethodName": "ResultAnalyticalMethod/MethodName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:CharacteristicName": "CharacteristicName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:DataQuality/wqx:PrecisionValue": "PrecisionValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultCommentText": "ResultCommentText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultDepthAltitudeReferencePointText": "ResultDepthAltitudeReferencePointText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultDepthHeightMeasure/wqx:MeasureUnitCode": "ResultDepthHeightMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultDepthHeightMeasure/wqx:MeasureValue": "ResultDepthHeightMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultDetectionConditionText": "ResultDetectionConditionText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultMeasure/wqx:MeasureQualifierCode": "MeasureQualifierCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultMeasure/wqx:MeasureUnitCode": "ResultMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultMeasure/wqx:ResultMeasureValue": "ResultMeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultParticleSizeBasisText": "ResultParticleSizeBasisText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultSampleFractionText": "ResultSampleFractionText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultStatusIdentifier": "ResultStatusIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultTemperatureBasisText": "ResultTemperatureBasisText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultTimeBasisText": "ResultTimeBasisText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultValueTypeName": "ResultValueTypeName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:ResultWeightBasisText": "ResultWeightBasisText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:StatisticalBaseCode": "StatisticalBaseCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultDescription/wqx:USGSPCode": "USGSPCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:AnalysisStartDate": "AnalysisStartDate",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:LaboratoryName": "LaboratoryName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:ResultDetectionQuantitationLimit/wqx:DetectionQuantitationLimitMeasure/wqx:MeasureUnitCode": "DetectionQuantitationLimitMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:ResultDetectionQuantitationLimit/wqx:DetectionQuantitationLimitMeasure/wqx:MeasureValue": "DetectionQuantitationLimitMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:ResultDetectionQuantitationLimit/wqx:DetectionQuantitationLimitTypeName": "DetectionQuantitationLimitTypeName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:Result/wqx:ResultLabInformation/wqx:ResultLaboratoryCommentText": "ResultLaboratoryCommentText",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:SampleDescription/wqx:SampleCollectionEquipmentName": "SampleCollectionEquipmentName",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:SampleDescription/wqx:SampleCollectionMethod/wqx:MethodIdentifier": "SampleCollectionMethod/MethodIdentifier",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:SampleDescription/wqx:SampleCollectionMethod/wqx:MethodIdentifierContext": "SampleCollectionMethod/MethodIdentifierContext",
+    "/wqx:WQX/wqx:Organization/wqx:Activity/wqx:SampleDescription/wqx:SampleCollectionMethod/wqx:MethodName": "SampleCollectionMethod/MethodName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:CountryCode": "CountryCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:CountyCode": "CountyCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:HorizontalAccuracyMeasure/wqx:MeasureUnitCode": "HorizontalAccuracyMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:HorizontalAccuracyMeasure/wqx:MeasureValue": "HorizontalAccuracyMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:HorizontalCollectionMethodName": "HorizontalCollectionMethodName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:HorizontalCoordinateReferenceSystemDatumName": "HorizontalCoordinateReferenceSystemDatumName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:LatitudeMeasure": "LatitudeMeasure",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:LongitudeMeasure": "LongitudeMeasure",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:SourceMapScaleNumeric": "SourceMapScaleNumeric",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:StateCode": "StateCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalAccuracyMeasure/wqx:MeasureUnitCode": "VerticalAccuracyMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalAccuracyMeasure/wqx:MeasureValue": "VerticalAccuracyMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalCollectionMethodName": "VerticalCollectionMethodName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalCoordinateReferenceSystemDatumName": "VerticalCoordinateReferenceSystemDatumName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalMeasure/wqx:MeasureUnitCode": "VerticalMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationGeospatial/wqx:VerticalMeasure/wqx:MeasureValue": "VerticalMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:ContributingDrainageAreaMeasure/wqx:MeasureUnitCode": "ContributingDrainageAreaMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:ContributingDrainageAreaMeasure/wqx:MeasureValue": "ContributingDrainageAreaMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:DrainageAreaMeasure/wqx:MeasureUnitCode": "DrainageAreaMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:DrainageAreaMeasure/wqx:MeasureValue": "DrainageAreaMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:HUCEightDigitCode": "HUCEightDigitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:MonitoringLocationDescriptionText": "MonitoringLocationDescriptionText",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:MonitoringLocationName": "MonitoringLocationName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:MonitoringLocationIdentity/wqx:MonitoringLocationTypeName": "MonitoringLocationTypeName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:AquiferName": "AquiferName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:AquiferTypeName": "AquiferTypeName",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:ConstructionDateText": "ConstructionDateText",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:FormationTypeText": "FormationTypeText",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:WellDepthMeasure/wqx:MeasureUnitCode": "WellDepthMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:WellDepthMeasure/wqx:MeasureValue": "WellDepthMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:WellHoleDepthMeasure/wqx:MeasureUnitCode": "WellHoleDepthMeasure/MeasureUnitCode",
+    "/wqx:WQX/wqx:Organization/wqx:MonitoringLocation/wqx:WellInformation/wqx:WellHoleDepthMeasure/wqx:MeasureValue": "WellHoleDepthMeasure/MeasureValue",
+    "/wqx:WQX/wqx:Organization/wqx:OrganizationDescription/wqx:OrganizationFormalName": "OrganizationFormalName",
+    "/wqx:WQX/wqx:Organization/wqx:OrganizationDescription/wqx:OrganizationIdentifier": "OrganizationIdentifier"}
 
 
-#tabular definitions as column sequences
+# Tabular definitions as column sequences. The keys of this data structure
+# are consistent with the scheme of context nodes provided in context_mappings.
 tabular_defs = {}
 
-# the ordered column names (as defined in column_mappings) of the 
+# the ordered set of column names (as defined in the values of column_mappings) of the 
 # tabular form of a Water Quality Portal /Station/search dataset
 tabular_defs['station'] = (
     'OrganizationIdentifier',
@@ -306,6 +359,9 @@ tabular_defs['result'] = (
     'PreparationStartDate')
 
 
+# Value expressions derived from, and consistent with, column_mappings. In this
+# dict, the sense of column_mappings's key:value relationship is reversed; 
+# ambiguities are resolved by the process of obtaining context nodes.
 val_xpaths = {}
 
 # common (i.e. shared across multiple rows) column defs descended from /WQX/Organization
@@ -353,6 +409,7 @@ val_xpaths['activity'] = {
     'ActivityDepthHeightMeasure/MeasureUnitCode': 'wqx:ActivityDescription/wqx:ActivityDepthHeightMeasure/wqx:MeasureUnitCode'}
 
 # item-specific (i.e. single-row-specific) column defs descended from /WQX/Organization/MonitoringLocation.
+# # These column defs apply to station mappings and not to results.
 # The column name is the key. The value is the RELATIVE XPath from
 # /WQX/Organization/MonitoringLocation, obeying the convention that "wqx" is the 
 #  XPath expression's expected alias for the WQX namespace.
@@ -435,35 +492,16 @@ val_xpaths['result'] = {
 
 class WQXMapper:
 
-
-    # ---------- namespace prefix dictionary
-    wqx_namespace_url = 'http://qwwebservices.usgs.gov/schemas/WQX-Outbound/2_0/'
-    ns = {'wqx': wqx_namespace_url}
-
-    # logical context nodes
+    # ---------- dictionary of precompiled XPath query expressions
+    #            for retrieving logical context nodes (matches
+    #            wqx_mappings.context_xpaths):
     context_xpaths_compl = {}
-    
-    # ---------- precompiled XPath query expressions ('nodeq') for retrieving 
-    #            Logical Node nodesets:
-
-    # relative expression from root
-    # organizations
-    context_xpaths_compl['org'] = etree.XPath('/wqx:WQX/wqx:Organization', namespaces=ns)
-
-    # relative expressions from organization node
-    # stations
-    context_xpaths_compl['station'] = etree.XPath('wqx:MonitoringLocation', namespaces=ns)
-    # activities
-    context_xpaths_compl['activity'] = etree.XPath('wqx:Activity', namespaces=ns)
-
-    # relative expression from activity node
-    # results
-    context_xpaths_compl['result'] = etree.XPath('wqx:Result', namespaces=ns)
+    for nodename in context_xpaths:
+        context_xpaths_compl[nodename] = etree.XPath(context_xpaths[nodename], namespaces=ns)
 
 
     # ---------- dictionaries of precompiled XPath query expressions  
     #            for retrieving column values (keys are tabular column names):
-
     val_xpaths_compl = {}
     for node in context_xpaths_compl.keys():
         print('doing node \'' + node + '\'')
@@ -674,8 +712,8 @@ class WQXMapper:
         table_type = self.determine_table_type(response)
 
         if table_type and response.content:
-            root = et.fromstring(response.content)
-            retval = make_dataframe_from_xml(table_type, root, columns_first)
+            root = etree.fromstring(response.content)
+            retval = self.make_dataframe_from_xml(table_type, root, columns_first)
 
         return retval
 

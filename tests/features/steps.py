@@ -203,6 +203,98 @@ def verify_header_terminator(step):
 
 
 
+@step(u'Given "([^"]*)" as the authoritative XML-to-column definition')
+def given_group1_as_the_authoritative_xml_to_column_definition(step, group1):
+    # use wqx_mappings (probably going to have to shift this to setup code...)
+    setup_target_path()
+    import wqx_mappings
+    world.mapper = wqx_mappings.WQXMapper()
+    
+    if not 'wqx_mappings.' in group1:
+        raise BaseException('Fix this step definition. It was written under outdated assumptions.')
+    else:
+        world.column_mappings = eval(group1)
+
+    assert(len(world.column_mappings) > 0)
+
+
+@step(u'And "([^"]*)" as the authoritative context node descriptor')
+def and_group1_as_the_authoritative_context_node_descriptor(step, group1):
+    import wqx_mappings
+    
+    if not 'wqx_mappings.' in group1:
+        raise BaseException('Fix this step definition. It was written under outdated assumptions.')
+    else:
+        world.context_descriptors = eval(group1)
+
+    assert(len(world.context_descriptors) > 0)
+
+@step(u'And "([^"]*)" as the authoritative tabular format descriptor')
+def and_group1_as_the_authoritative_tabular_format_descriptor(step, group1):
+    import wqx_mappings
+    if not 'wqx_mappings.' in group1:
+        raise BaseException('Fix this step definition. It was written under outdated assumptions.')
+    else:
+        world.tabular_defs = eval(group1)
+
+    assert('station' in world.tabular_defs)
+    assert('result' in world.tabular_defs)
+
+
+@step(u'And "([^"]*)" as the definitive context node XPath expression set')
+def and_group1_as_the_definitive_context_node_xpath_expression_set(step, group1):
+    import wqx_mappings
+    if not 'wqx_mappings.' in group1:
+        raise BaseException('Fix this step definition. It was written under outdated assumptions.')
+    else:
+        world.context_xpaths = eval(group1)
+    assert(len(world.context_xpaths) > 0)
+
+
+@step(u'And "([^"]*)" as the definitive column value XPath expression set')
+def and_group1_as_the_definitive_column_value_xpath_expression_set(step, group1):
+    import wqx_mappings
+    if not 'wqx_mappings.' in group1:
+        raise BaseException('Fix this step definition. It was written under outdated assumptions.')
+    else:
+        world.val_xpaths = eval(group1)
+    assert(len(world.val_xpaths) > 0)
+
+@step(u'Then the tabular format descriptor must be contained in the XML-to-column definition')
+def then_the_tabular_format_descriptor_must_be_contained_in_the_xml_to_column_definition(step):
+    import wqx_mappings
+    for table_type in wqx_mappings.tabular_defs:
+        world.context_descriptor_exclusions = wqx_mappings.context_descriptor_exclusions
+        valid_mappings = get_valid_column_nappings(table_type, world)
+        valid_uniques = set(valid_mappings.values())
+
+        # no duplicates permitted! 
+        valid_uniques = set(valid_mappings.values())
+        assert(len(valid_mappings.values()) == len(valid_uniques))
+
+        # same number of column names as corresponding tabular def
+        assert(len(valid_uniques) == len(wqx_mappings.tabular_defs[table_type]))
+
+        # there must be a one-to-one mapping with tabular def
+        for colname in wqx_mappings.tabular_defs[table_type]:
+            assert(colname in valid_uniques)
+            
+            
+
+@step(u'And the column value XPath expression set must be contained in the XML-to-column definition')
+def and_the_column_value_xpath_expression_set_must_be_contained_in_the_xml_to_column_definition(step):
+    # this test step verifies that 
+    for nodename in world.val_xpaths.keys():
+        for colname in world.val_xpaths[nodename]:
+            print('colname:' + colname)
+            segments = world.val_xpaths[nodename][colname].split('/')
+            # strip out namespace aliases (not too perfect, but this is not a perfect test)
+            segments = [segment.split(':')[1] for segment in segments]
+            print('/'.join(segments))
+            #assert(world.xml2coldef[colname][- len(segments):] == segments)
+
+
+
 # ----------------- supporting functions -------------
 
 def setup_target_path():
@@ -227,3 +319,32 @@ def setup_target_path():
     # add victim_folder to path for imports
     if victim_folder not in sys.path:
         sys.path.insert(0, victim_folder)
+
+
+def get_valid_column_nappings(table_type, world):
+    # To say the tabular_format_descriptor must be "contained in" the xml_to_column_definition
+    # means the following:
+    # 1. For each tabular type (currently, "station" or "result") in the 
+    #   tabular_format_descriptor:
+    # 2. The subset ofxml_to_column_definition entries is established by the 
+    #   presence of the corresponding context node path in the ancestor chain 
+    #   of the xml_to_column_definition key. 
+    #   (Less formally: the xml_to_column_definition entry must be applicable to the kind 
+    #   of table being defined. Result paths don't matter for station tables, and vice versa.))
+    # 3. For each column name in the tabular_format_descriptor for the given 
+    #   tablular type, there must exist exactly one equal value in the mapping subset
+    #   defined as desribed in the previous step.
+
+    import wqx_mappings
+    valid_mappings = {}
+    for candidate_path in world.column_mappings:
+        excluded = False
+        for exc_name in world.context_descriptor_exclusions[table_type]:
+            exc_path = world.context_descriptors[exc_name]
+            if exc_path in candidate_path:
+                excluded = True
+                break
+        if not excluded:
+            valid_mappings[candidate_path] = world.column_mappings[candidate_path]
+
+    return valid_mappings

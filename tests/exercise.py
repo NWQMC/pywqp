@@ -95,5 +95,29 @@ if datadict2:
     print(dataframe.irow(row_to_display))
     print(color_yellow + 'done with irow(' + str(row_to_display) + ')' + color_stop)
 
+print('\n\n')
+
+# use pywqp_client to fetch as dataframe
+import pywqp_client
+client_instance = pywqp_client.RESTClient()
+
+# params
+params = {}
+params['countrycode'] = 'US'
+params['statecode'] = 'US:55'
+params['countycode'] = 'US:55:015'
+params['characteristicName'] = 'pH'
+
+response = client_instance.request_wqp_data('get', 'http://www.waterqualitydata.us', 'station', params, 'text/xml')
+
+print('status code: ' + str(response.status_code))
+for header in response.headers:
+    print(header + ': ' + response.headers[header])
+
+print
+
+dataframe = client_instance.response_as_pandas_dataframe(response)
+
+print(dataframe)
 
 print

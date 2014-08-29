@@ -131,7 +131,9 @@ class RESTClient():
         if not response:
             return None
         content_type = response.headers.get('content-type')
-        if not content_type:
+        if content_type:
+            content_type = content_type.split(';')[0]
+        else:
             # TODO: determine if there's any good default value
             # TODO: any worthwhile analysis/guessing algorithms?
             content_type = None
@@ -146,6 +148,7 @@ class RESTClient():
             return None
 
         content_type = self.get_content_type(response)
+
         if not content_type:
             return None
 
