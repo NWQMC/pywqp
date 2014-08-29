@@ -9,7 +9,7 @@ from setuptools import find_packages
 
 setup(
     name = 'pywqp',
-    version = '0.1.0-dev',
+    version = '0.1.1-dev',
     description = 'Interface to the Water Quality Portal',
     long_description = open('README.md').read(),
     license='Public Domain',
