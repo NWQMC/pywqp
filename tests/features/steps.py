@@ -279,19 +279,19 @@ def then_the_tabular_format_descriptor_must_be_contained_in_the_xml_to_column_de
         for colname in wqx_mappings.tabular_defs[table_type]:
             assert(colname in valid_uniques)
             
-            
-
 @step(u'And the column value XPath expression set must be contained in the XML-to-column definition')
 def and_the_column_value_xpath_expression_set_must_be_contained_in_the_xml_to_column_definition(step):
-    # this test step verifies that 
+    # this test step verifies that the value-extraction XPath expressions match
+    # entries in the XML-to-column mappings
     for nodename in world.val_xpaths.keys():
+        # need a prefix for the relative paths in val_xpaths
+        prefixpath = world.context_descriptors[nodename]
+        indx = 0
         for colname in world.val_xpaths[nodename]:
-            print('colname:' + colname)
-            segments = world.val_xpaths[nodename][colname].split('/')
-            # strip out namespace aliases (not too perfect, but this is not a perfect test)
-            segments = [segment.split(':')[1] for segment in segments]
-            print('/'.join(segments))
-            #assert(world.xml2coldef[colname][- len(segments):] == segments)
+            indx = indx + 1
+            relpath = world.val_xpaths[nodename][colname]
+            fullpath = '/'.join((prefixpath, relpath))
+            assert(fullpath in world.column_mappings)
 
 
 
