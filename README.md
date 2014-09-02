@@ -1,19 +1,27 @@
 pywqp
 =====
+A generic scriptable Python client for downloading datasets from the Web Services offered by the USGS/EPA Water Quality Portal: an alternative to manual use of the [WQP website](http://www.waterqualitydata.us).
 
-A generic scriptable Python client for downloading datasets from the USGS/EPA Water Quality Portal: an alternative to manual use of the website at http://www.waterqualitydata.us.
+### pywqp overview
 
 The project consists of the following components:
 
--  A client module, `pywqp_client.py`, which obtains WQP data in CSV format or in native Water Quality XML. This is suitable for inclusion in Python programs.
+-  A client module, `pywqp_client.py`, which obtains WQP data in CSV format or in native Water Quality XML. This module is suitable for inclusion in Python programs.
 
--  A convenience wrapper, `pywqp.py`, which manages common query-and-convert actions from the command line. When it is invoked, the commandline parameters are sent to an instance of pywqp_client.py.
+-  A support module, `wqx_mappings.py`, which can be used independently:
 
--  A parameter validation module, `pywqp_validator.py`
+  - Defines the relationship between the WQX-Outbound 2.0 XML format and the fundamental tabular forms represented in CSV and TSV results;
+
+  - Provides utility methods to create `pandas` DataFrame objects from WQP XML query responses (which do not suffer from the vulnerabilities of character escaping that plague CSV and TSV formats.) 
+
+- A convenience wrapper, `pywqp.py`, which manages common query-and-convert actions from the command line. When it is invoked, the commandline parameters are sent to an instance of pywqp_client.py.
+
+- A parameter validation module, `pywqp_validator.py`
+
 
 <br/>
 ### Quick answers
-[How Do I download WQP data from my Python program?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#downloading-wqp-data-with-request_wqp_data)
+[How do I download WQP data from my Python program?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#downloading-wqp-data-with-request_wqp_data)
 
 [How do I convert my download to a pandas dataframe?](#converting-wqp-response-data-to-a-pandas-dataframe-with-response_as_pandas_dataframe)
 

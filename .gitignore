@@ -3,6 +3,7 @@
 *.swp
 *.swo
 *.pyc
+*.idea
 /tests/features/scratch/
 /tests/scratch/*
 #virtualenv
