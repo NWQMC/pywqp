@@ -29,7 +29,7 @@ The project consists of the following components:
 
 [How do I run the module tests?](#running-the-pywqp-tests)
 
-[What can I do with <tt>wqx_mappings</tt>?](#using-wqx-mappings-in-your-python-program)
+[What can I do with <tt>wqx_mappings</tt>?](#using-wqx_mappings-in-your-python-program)
 
 <br/>
 ### Using <tt>pywqp-client.py</tt> in your Python program
