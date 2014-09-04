@@ -21,13 +21,15 @@ The project consists of the following components:
 
 <br/>
 ### Quick answers
-[How do I download WQP data from my Python program?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#downloading-wqp-data-with-request_wqp_data)
+[How do I download WQP data from my Python program?](#downloading-wqp-data-with-request_wqp_data)
 
 [How do I convert my download to a pandas dataframe?](#converting-wqp-response-data-to-a-pandas-dataframe-with-response_as_pandas_dataframe)
 
-[How do I stash my download to the local filesysstem?](https://github.com/wblondeau-usgs/pywqp/blob/master/README.md#stashing-wqp-response-data-to-your-local-machine-with-stash_response)
+[How do I stash my download to the local filesystem?](#stashing-wqp-response-data-to-your-local-machine-with-stash_response)
 
 [How do I run the module tests?](#running-the-pywqp-tests)
+
+[What can I do with <tt>wqx_mappings</tt>?](#using-wqx-mappings-in-your-python-program)
 
 <br/>
 ### Using <tt>pywqp-client.py</tt> in your Python program
@@ -172,5 +174,23 @@ Lettuce is extremely simple to run. From the pywqp root:
 lettuce</tt>
 </pre>
 
-
 Its output is pretty straightforward to read, too.
+
+<br/>
+### Using <tt>wqx_mappings</tt> in your Python program
+Although `pywqp_client.py` uses `wqx_mappings.py` to manage all clientside XML-to-DataFrame work, there are other, independent, uses for `wqx_mappings`. 
+
+#### Authoritative tabular definitions
+The first use is that `wqx_mappings` contains a logically complete description of the mappings between WQX-Outbound 2.0 XML and the "canonical" tabular forms represented by CSV and TSV content. These mappings are represented by the module-level data structures:
+
+- `context_descriptors`, which identifies the logically significant container nodes in WQX content, as XPath-like expressions;
+
+- `column_mappings`, which is a dictionary whose keys are XPath-like expressions and whose values are column names;
+
+- `tabular_defs`, which is a dictionary whose keys are tabular definition types, and whose values are tuples of column names, defining the sequence in which columns appear in the table.
+
+<pre>
+<tt>import wqx_mappings
+mapper_instance = wqx_mappings.WQXMapper()</tt>
+</pre>
+
