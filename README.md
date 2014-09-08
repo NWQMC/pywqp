@@ -33,7 +33,7 @@ The project consists of the following components:
 
 <br/>
 ### Using <tt>pywqp-client.py</tt> in your Python program
-The core resource of `pywqp_client` is the class `RESTClient`. The pattern of usage is fairly simple:
+The core resource of `pywqp_client` is the class `RESTClient`. Instantiation is fairly simple:
 <pre>
 <tt>import pywpq_client
 client_instance = pywqp_client.RESTClient()</tt>
@@ -189,8 +189,18 @@ The first use is that `wqx_mappings` contains a logically complete description o
 
 - `tabular_defs`, which is a dictionary whose keys are tabular definition types, and whose values are tuples of column names, defining the sequence in which columns appear in the table.
 
+- `val_xpaths`, which is a dictionary whose keys are context node type names, and whose values are dictionaries mapping column names (keys) to RELATIVE XPath-like expressions that identify the node containing the text to be entered into a cell for any row constructed while the node is "in context".
+
+#### The WQXMapper utility class
+This class exposes some helpful methods and properties. Instantiation is simple:
 <pre>
 <tt>import wqx_mappings
 mapper_instance = wqx_mappings.WQXMapper()</tt>
 </pre>
 
+<br/>
+##### Determining (if possible) the type of the table to be constructed from an HTTP response.
+
+<pre>
+<tt>table_type = mapper_instance.determine_table_type(response)</tt>
+</pre>
