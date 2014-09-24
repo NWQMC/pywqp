@@ -45,7 +45,7 @@ To upgrade to the latest version, simply use the --upgrade flag:
 <tt>$ pip install git+https://github.com/USGS-CIDA/pywqp.git --upgrade</tt>
 </pre>
 
-Alternatively, you can dowload the package and add it manually to your path.
+Alternatively, you can download the package and add it manually to your path.
 
 
 <br/>
