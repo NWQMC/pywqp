@@ -39,7 +39,20 @@ The core resource of `pywqp_client` is the class `RESTClient`. Instantiation is 
 client_instance = pywqp_client.RESTClient()</tt>
 </pre>
 
-**Note** that you will need to ensure that the `pywqp` folder is in your system path, or else you will not be able to `import pywqp_client`.
+**Note** that you will need to ensure that the `pywqp` folder is in your system path, or else you will not be able to `import pywqp_client`. The easiest way to do this is simply to use pip to pull the package directly from github.
+
+<pre>
+<tt>$ pip install git+https://github.com/USGS-CIDA/pywqp.git</tt>
+</pre>
+
+To upgrade to the latest version, simply use the --upgrade flag:
+
+<pre>
+<tt>$ pip install git+https://github.com/USGS-CIDA/pywqp.git --upgrade</tt>
+</pre>
+
+
+
 
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`. Examples of the important ones are shown below. In all cases, the example name "client_instance" is reused for simplicity, but that name has no particular significance. Name your objects as you wish.
 
