@@ -31,15 +31,9 @@ The project consists of the following components:
 
 [What can I do with <tt>wqx_mappings</tt>?](#using-wqx_mappings-in-your-python-program)
 
-<br/>
-### Using <tt>pywqp-client.py</tt> in your Python program
-The core resource of `pywqp_client` is the class `RESTClient`. Instantiation is fairly simple:
-<pre>
-<tt>import pywpq_client
-client_instance = pywqp_client.RESTClient()</tt>
-</pre>
+###Installing pywqp
 
-**Note** that you will need to ensure that the `pywqp` folder is in your system path, or else you will not be able to `import pywqp_client`. The easiest way to do this is simply to use pip to pull the package directly from github.
+You will need to ensure that the `pywqp` folder is in your system path before you can do anything or else you will not be able to `import pywqp_client`. The easiest way to do this is simply to use pip to pull the package directly from github.
 
 <pre>
 <tt>$ pip install git+https://github.com/USGS-CIDA/pywqp.git</tt>
@@ -51,8 +45,16 @@ To upgrade to the latest version, simply use the --upgrade flag:
 <tt>$ pip install git+https://github.com/USGS-CIDA/pywqp.git --upgrade</tt>
 </pre>
 
+Alternatively, you can dowload the package and add it manually to your path.
 
 
+<br/>
+### Using <tt>pywqp-client.py</tt> in your Python program
+The core resource of `pywqp_client` is the class `RESTClient`. Instantiation is fairly simple:
+<pre>
+<tt>import pywpq_client
+client_instance = pywqp_client.RESTClient()</tt>
+</pre>
 
 `client_instance` is now ready to run any of the functions exposed by `RESTClient`. Examples of the important ones are shown below. In all cases, the example name "client_instance" is reused for simplicity, but that name has no particular significance. Name your objects as you wish.
 
